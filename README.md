@@ -4,8 +4,14 @@ This template should help get you started developing with Vue 3 and TypeScript i
 
 Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
 
+## 환경
+- Node.js v20.19.0 
+
 ## Setting
-- Node.js v20.19.0
+Node Version Manager 설치 (필수x, node.js v20.19.0 바로 다운받으셔도 됩니다.) 
+- https://github.com/coreybutler/nvm-windows/releases
+- nvm-setup.exe 다운 및 실행
+
 ```
 nvm install 20
 nvm use 20
@@ -13,11 +19,12 @@ nvm use 20
 
 ## Project Run
 ```
-npm install (최초)
+cd mmg-web
+npm install 
 npm run dev
 ```
 
-## 실행성공
+## 실행
   VITE v6.3.2  ready in 1848 ms
 
   ➜  Local:   http://localhost:5173/ \
