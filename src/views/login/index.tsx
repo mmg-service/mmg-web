@@ -48,8 +48,8 @@ export default defineComponent({
     return () => (
       <div class="login-container">
         <div class="login-card">
+          <img src="/src/assets/logo.svg" alt="" class="login-logo" />
           <h1 class="login-title">MMG</h1>
-          <h2 class="login-subtitle">뭐먹지?</h2>
           
           <form onSubmit={login} class="login-form">
             <div class="form-group">

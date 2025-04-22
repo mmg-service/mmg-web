@@ -1,0 +1,25 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 메인 원형 배경 -->
+  <circle cx="100" cy="100" r="90" fill="#FF6B6B" />
+  
+  <!-- 접시 -->
+  <circle cx="100" cy="100" r="65" fill="#FFFFFF" />
+  <circle cx="100" cy="100" r="60" fill="#FF6B6B" />
+  
+  <!-- 포크와 숟가락 -->
+  <g stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 보편적인 포크 모양 -->
+    <path d="M85,60 L85,150" />
+    <!-- 포크 갈래 -->
+    <path d="M75,60 L75,85" />
+    <path d="M85,60 L85,85" />
+    <path d="M95,60 L95,85" />
+    <!-- 포크 손잡이 부분과 갈래 연결 -->
+    <path d="M75,85 C75,95 85,95 85,95" />
+    <path d="M95,85 C95,95 85,95 85,95" />
+    
+    <!-- 숟가락 - 간격 줄임 -->
+    <path d="M115,60 C130,60 130,85 115,85 C100,85 100,60 115,60 Z" />
+    <path d="M115,85 L115,150" />
+  </g>
+</svg>

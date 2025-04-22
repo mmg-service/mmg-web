@@ -100,6 +100,12 @@
     margin: 0 10px;
     color: #ddd;
   }
+
+  .login-logo{
+    width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+  }
   
   /* Error message styling */
   .error-message {
