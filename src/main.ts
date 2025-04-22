@@ -1,5 +1,12 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.tsx';
+import router from './router';
+import './styles/global.css';
 
-createApp(App).mount('#app')
+const app = createApp(App);
+
+// 라우터 등록
+app.use(router);
+
+// 앱 마운트
+app.mount('#app');
