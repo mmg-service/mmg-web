@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
-import MapView from '../views/MapView.vue'
+import MapView from '../components/map/MapView.vue'
 import SearchView from '../views/SearchView.vue'
 import DetailView from '../views/DetailView.vue'
 import FilteredResultView from '../views/FilteredResultView.vue'
@@ -25,7 +25,7 @@ const routes = [
   {
     path: '/map',
     name: 'Map',
-    component: MapView
+    component: () => import('@/components/map/MapView.vue')
   },
   {
     path: '/search',
