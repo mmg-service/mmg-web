@@ -1,48 +1,17 @@
 <template>
-    <div class="map-marker" @click="$emit('click')">
-      <div class="marker-content">
-        <div class="marker-title">{{ title }}</div>
-        <div class="marker-rating">{{ rating }}</div>
-      </div>
-    </div>
-  </template>
-  
-  <script setup>
-  defineProps({
-    position: {
-      type: Object,
-      required: true
-    },
-    title: {
-      type: String,
-      default: ''
-    },
-    rating: {
-      type: [Number, String],
-      default: 0
-    }
-  })
-  
-  defineEmits(['click']) 
-  </script>
-  
-  <style scoped>
-  .map-marker {
-    cursor: pointer;
-    background-color: white;
-    border-radius: 5px;
-    padding: 5px 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    min-width: 100px;
-  }
-  
-  .marker-title {
-    font-weight: bold;
-    font-size: 12px;
-  }
-  
-  .marker-rating {
-    color: #f59f00;
-    font-size: 12px;
-  }
-  </style>
+  <div class="marker-wrapper">
+    <!-- 네이버 지도 API 사용으로 실제 사용되지 않음 -->
+  </div>
+</template>
+
+<script setup>
+// 이 컴포넌트는 네이버 지도 API를 사용하여 직접 마커를 생성하므로
+// 실제로는 사용되지 않습니다. MapView.vue에서 직접 마커를 생성합니다.
+// 필요시 마커 생성 로직을 여기로 분리할 수 있습니다.
+</script>
+
+<style scoped>
+.marker-wrapper {
+  display: none;
+}
+</style>

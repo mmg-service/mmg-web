@@ -183,8 +183,8 @@ const userLocation = computed(() => store.getters['map/userLocation']);
 
 // 네이버 지역 API 호출을 위한 설정
 const naverApiConfig = {
-  clientId: 'q58itu6nad',     // 실제 발급 받은 Client ID로 대체
-  clientSecret: 'kWv3UGJ0y6l6m2eh9ZpV7zkwZxKteflKCQ1GdKzw' // 실제 발급 받은 Client Secret으로 대체
+  clientId: 'pqo3hwvpqb',     // 실제 발급 받은 Client ID로 대체
+  clientSecret: 'qFKahozg0uM2DdtpHUHHDCJnDTMIZzm4vaRAYLxN' // 실제 발급 받은 Client Secret으로 대체
 };
 
 onMounted(() => {
