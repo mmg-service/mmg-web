@@ -1,0 +1,67 @@
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mmg-web
+  namespace: ${namespace}
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+      app: mmg-web
+  template:
+    metadata:
+      labels:
+        app: mmg-web
+    spec:
+      containers:
+      - name: mmg-web
+        image: ${mmg_web_image_path}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: ${export_port}
+        resources:
+          requests:
+            cpu: ${resources_requests_cpu}
+            memory: ${resources_requests_memory}
+          limits:
+            cpu: ${resources_limits_cpu}
+            memory: ${resources_limits_memory}
+        volumeMounts:
+        - name: runtime-config
+          mountPath: /app/dist/runtime-env.js
+          subPath: runtime-env.js
+      volumes:
+      - name: runtime-config
+        configMap:
+          name: mmg-web-runtime-config
+
+---
+# Frontend ConfigMap for runtime config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mmg-web-runtime-config
+  namespace: ${namespace}
+data:
+  runtime-env.js: |
+    window.__runtime_config__ = {
+      MEMBER_URL: '${react_app_member_url}',
+      RESTAURANT_URL: '${react_app_restaurant_url}',
+      RECOMMENDATION_URL: '${react_app_recommendation_url}'
+    }
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mmg-web
+  namespace: ${namespace}
+spec:
+  selector:
+    app: mmg-web
+  ports:
+  - port: 80
+    targetPort: ${export_port}
+  type: LoadBalancer

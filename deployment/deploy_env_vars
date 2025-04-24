@@ -1,0 +1,23 @@
+# Team Settings
+teamid=mmg
+root_project=mmg-web
+namespace=mmg-system
+
+# Container Registry Settings
+registry=azurecr.io
+image_org=mmg
+
+# Application Settings
+replicas=1
+export_port=18080
+
+# Backend Service URLs
+react_app_member_url=http://20.249.185.142/api/members
+react_app_restaurant_url=http://20.249.185.142/api/restaurants
+react_app_recommendation_url=http://20.249.185.142/api/recommendations
+
+# Resource Settings
+resources_requests_cpu=256m
+resources_requests_memory=256Mi
+resources_limits_cpu=1024m
+resources_limits_memory=1024Mi

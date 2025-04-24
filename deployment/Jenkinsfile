@@ -1,0 +1,110 @@
+def PIPELINE_ID = "${env.BUILD_NUMBER}"
+
+def getImageTag() {
+    def dateFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmss')
+    def currentDate = new Date()
+    return dateFormat.format(currentDate)
+}
+
+podTemplate(
+    label: "${PIPELINE_ID}",
+    serviceAccount: 'jenkins',
+    containers: [
+        containerTemplate(name: 'node', image: 'node:20-slim', ttyEnabled: true, command: 'cat'),
+        containerTemplate(name: 'podman', image: "mgoltzsche/podman", ttyEnabled: true, command: 'cat', privileged: true),
+        containerTemplate(name: 'azure-cli', image: 'hiondal/azure-kubectl:latest', command: 'cat', ttyEnabled: true),
+        containerTemplate(name: 'envsubst', image: "hiondal/envsubst", command: 'sleep', args: '1h')
+    ],
+    volumes: [
+        emptyDirVolume(mountPath: '/root/.azure', memory: false)
+    ]
+) {
+    node(PIPELINE_ID) {
+        def props
+        def imageTag = getImageTag()
+        def manifest = "deploy.yaml"
+        def namespace
+
+        stage("Get Source") {
+            checkout scm
+            props = readProperties file: "deployment/deploy_env_vars"
+            namespace = "${props.namespace}"
+        }
+
+        stage("Setup AKS") {
+            container('azure-cli') {
+                withCredentials([azureServicePrincipal('azure-credentials')]) {
+                    sh """
+                        az login --service-principal -u \$AZURE_CLIENT_ID -p \$AZURE_CLIENT_SECRET -t \$AZURE_TENANT_ID
+                        az aks get-credentials --resource-group rg-digitalgarage-02 --name aks-digitalgarage-02 --overwrite-existing
+                        kubectl create namespace ${namespace} --dry-run=client -o yaml | kubectl apply -f -
+                    """
+                }
+            }
+        }
+
+        stage('Build & Push Image') {
+            container('podman') {
+                withCredentials([usernamePassword(
+                    credentialsId: 'acr-credentials',
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD'
+                )]) {
+                    def imagePath = "${props.registry}/${props.image_org}/mmg-web:${imageTag}"
+                    
+                    sh """
+                        podman login ${props.registry} --username \$USERNAME --password \$PASSWORD
+
+                        podman build \
+                            --build-arg PROJECT_FOLDER="." \
+                            --build-arg REACT_APP_MEMBER_URL="${props.react_app_member_url}" \
+                            --build-arg REACT_APP_RESTAURANT_URL="${props.react_app_restaurant_url}" \
+                            --build-arg REACT_APP_RECOMMENDATION_URL="${props.react_app_recommendation_url}" \
+                            --build-arg BUILD_FOLDER="deployment/container" \
+                            --build-arg EXPORT_PORT="${props.export_port}" \
+                            -f Dockerfile \
+                            -t ${imagePath} .
+                        
+                        podman push ${imagePath}
+                    """
+                }
+            }
+        }
+
+        stage('Generate & Apply Manifest') {
+            container('envsubst') {
+                sh """
+                    export namespace=${namespace}
+                    export mmg_web_image_path=${props.registry}/${props.image_org}/mmg-web:${imageTag}
+                    export replicas=${props.replicas}
+                    export export_port=${props.export_port}
+                    export react_app_member_url=${props.react_app_member_url}
+                    export react_app_restaurant_url=${props.react_app_restaurant_url}
+                    export react_app_recommendation_url=${props.react_app_recommendation_url}
+                    export resources_requests_cpu=${props.resources_requests_cpu}
+                    export resources_requests_memory=${props.resources_requests_memory}
+                    export resources_limits_cpu=${props.resources_limits_cpu}
+                    export resources_limits_memory=${props.resources_limits_memory}
+                    
+                    envsubst < deployment/${manifest}.template > deployment/${manifest}
+                    cat deployment/${manifest}
+                """
+            }
+
+            container('azure-cli') {
+                sh """
+                    kubectl apply -f deployment/${manifest}
+                    
+                    echo "Waiting for deployment to be ready..."
+                    kubectl -n ${namespace} wait --for=condition=available deployment/mmg-web --timeout=300s
+                    
+                    echo "Waiting for service external IP..."
+                    while [[ -z \$(kubectl -n ${namespace} get svc mmg-web -o jsonpath='{.status.loadBalancer.ingress[0].ip}') ]]; do
+                        sleep 5
+                    done
+                    echo "Service external IP: \$(kubectl -n ${namespace} get svc mmg-web -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+                """
+            }
+        }
+    }
+}
