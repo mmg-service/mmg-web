@@ -9,7 +9,7 @@ image_org=mmg
 
 # Application Settings
 replicas=1
-export_port=18080
+export_port=3000
 
 # Backend Service URLs
 react_app_member_url=http://20.249.185.142/api/members
