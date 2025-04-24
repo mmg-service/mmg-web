@@ -8,13 +8,8 @@ registry=acrmmg.azurecr.io
 image_org=mmg
 
 # Application Settings
-replicas=1
 export_port=3000
 
-# Backend Service URLs
-react_app_member_url=http://20.249.185.142/api/members
-react_app_restaurant_url=http://20.249.185.142/api/restaurants
-react_app_recommendation_url=http://20.249.185.142/api/recommendations
 
 # Resource Settings
 resources_requests_cpu=256m
