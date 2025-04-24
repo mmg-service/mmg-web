@@ -102,10 +102,10 @@ podTemplate(
                     kubectl -n ${namespace} wait --for=condition=available deployment/mmg-frontend --timeout=300s
                     
                     echo "Waiting for service external IP..."
-                    while [[ -z \$(kubectl -n ${namespace} get svc mmg-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}') ]]; do
+                    while [[ -z \$(kubectl -n ${namespace} get svc mmg-frontend]]; do
                         sleep 5
                     done
-                    echo "Service external IP: \$(kubectl -n ${namespace} get svc mmg-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+                    echo "Service external IP: \$(kubectl -n ${namespace} get svc mmg-frontend)"
                 """
             }
         }
