@@ -1,0 +1,51 @@
+# Build stage
+FROM node:20-slim AS builder
+ARG PROJECT_FOLDER
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Install dependencies
+COPY ${PROJECT_FOLDER}/package*.json ./
+RUN npm ci --only=production
+
+# Build application
+COPY ${PROJECT_FOLDER} .
+RUN npm run build
+
+# Run stage
+FROM nginx:stable-alpine
+
+ARG BUILD_FOLDER
+ARG EXPORT_PORT
+
+# Create nginx user if it doesn't exist
+RUN adduser -S nginx || true
+
+# Copy build files
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Copy and process nginx configuration
+COPY ${BUILD_FOLDER}/nginx.conf /etc/nginx/templates/default.conf.template
+
+# Add custom nginx settings
+RUN echo "client_max_body_size 100M;" > /etc/nginx/conf.d/client_max_body_size.conf
+RUN echo "proxy_buffer_size 128k;" > /etc/nginx/conf.d/proxy_buffer_size.conf
+RUN echo "proxy_buffers 4 256k;" > /etc/nginx/conf.d/proxy_buffers.conf
+RUN echo "proxy_busy_buffers_size 256k;" > /etc/nginx/conf.d/proxy_busy_buffers_size.conf
+
+# Set permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+USER nginx
+
+EXPOSE ${EXPORT_PORT}
+
+CMD ["nginx", "-g", "daemon off;"]
