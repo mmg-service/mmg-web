@@ -1,10 +1,16 @@
 import axios from 'axios'
 
+// 현재 환경 가져오기
+const BASE_URL = process.env.VUE_APP_API_URL;
+const currentEnv = process.env.NODE_ENV || 'development';
+
 // API 기본 설정
 const api = axios.create({
-  baseURL: 'http://localhost:8080/v1',
+  baseURL: BASE_URL,
   timeout: 10000
 })
+
+
 
 // 요청 인터셉터 설정
 api.interceptors.request.use(
@@ -13,6 +19,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
+
+    // 개발 환경에서만 요청 로깅
+    if (currentEnv === 'development') {
+      console.log('API Request:', config);
+    }
+
     return config
   },
   error => {
@@ -23,6 +35,11 @@ api.interceptors.request.use(
 // 응답 인터셉터 설정
 api.interceptors.response.use(
   response => {
+    // 개발 환경에서만 응답 로깅
+    if (currentEnv === 'development') {
+      console.log('API Response:', response);
+    }
+
     return response
   },
   error => {
