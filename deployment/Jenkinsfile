@@ -50,7 +50,7 @@ podTemplate(
                     usernameVariable: 'USERNAME',
                     passwordVariable: 'PASSWORD'
                 )]) {
-                    def imagePath = "${props.registry}/${props.image_org}/mmg-web:${imageTag}"
+                    def imagePath = "${props.registry}/${props.image_org}/mmg-frontend:${imageTag}"
                     
                     sh """
                         podman login ${props.registry} --username \$USERNAME --password \$PASSWORD
@@ -75,7 +75,7 @@ podTemplate(
             container('envsubst') {
                 sh """
                     export namespace=${namespace}
-                    export mmg_web_image_path=${props.registry}/${props.image_org}/mmg-web:${imageTag}
+                    export mmg_web_image_path=${props.registry}/${props.image_org}/mmg-frontend:${imageTag}
                     export replicas=${props.replicas}
                     export export_port=${props.export_port}
                     export react_app_member_url=${props.react_app_member_url}
@@ -96,13 +96,13 @@ podTemplate(
                     kubectl apply -f deployment/${manifest}
                     
                     echo "Waiting for deployment to be ready..."
-                    kubectl -n ${namespace} wait --for=condition=available deployment/mmg-web --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/mmg-frontend --timeout=300s
                     
                     echo "Waiting for service external IP..."
-                    while [[ -z \$(kubectl -n ${namespace} get svc mmg-web -o jsonpath='{.status.loadBalancer.ingress[0].ip}') ]]; do
+                    while [[ -z \$(kubectl -n ${namespace} get svc mmg-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}') ]]; do
                         sleep 5
                     done
-                    echo "Service external IP: \$(kubectl -n ${namespace} get svc mmg-web -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+                    echo "Service external IP: \$(kubectl -n ${namespace} get svc mmg-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
                 """
             }
         }
