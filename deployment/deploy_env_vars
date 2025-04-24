@@ -4,7 +4,7 @@ root_project=mmg-web
 namespace=mmg-system
 
 # Container Registry Settings
-registry=azurecr.io
+registry=acrmmg.azurecr.io
 image_org=mmg
 
 # Application Settings
