@@ -46,8 +46,8 @@ export default {
       AuthService.logout()
       commit('logout')
     },
-    register({ commit }, user) {
-      return AuthService.register(user).then(
+    signup({ commit }, user) {
+      return AuthService.signup(user).then(
         response => {
           commit('registerSuccess')
           return Promise.resolve(response.data)

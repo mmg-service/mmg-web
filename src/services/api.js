@@ -10,8 +10,6 @@ const api = axios.create({
   timeout: 10000
 })
 
-
-
 // 요청 인터셉터 설정
 api.interceptors.request.use(
   config => {

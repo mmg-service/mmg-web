@@ -3,8 +3,8 @@ import api from './api'
 class AuthService {
   async login(user) {
     const response = await api.post('/auth/login', {
-      phoneNumber: user.phoneNumber,
-      verificationCode: user.verificationCode
+      username: user.username,
+      password: user.password
     })
     
     if (response.data.token) {
@@ -20,11 +20,13 @@ class AuthService {
     localStorage.removeItem('user')
   }
 
-  async register(user) {
-    return api.post('/auth/register', {
-      phoneNumber: user.phoneNumber,
-      verificationCode: user.verificationCode
+  async signup(user) {
+    const response = await api.post('/auth/signup', {
+      username: user.username,
+      password: user.password
     })
+
+    return response
   }
 
   getCurrentUser() {

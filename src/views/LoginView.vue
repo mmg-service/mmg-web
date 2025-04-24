@@ -20,25 +20,25 @@
       
       <div class="form-container">
         <div class="form-group">
-          <label for="phoneNumber">휴대폰 번호</label>
+          <label for="username">아이디</label>
           <i class="fas fa-mobile-alt input-icon"></i>
           <input 
             type="text" 
-            id="phoneNumber" 
-            v-model="phoneNumber" 
-            placeholder="휴대폰 번호" 
+            id="username" 
+            v-model="username" 
+            placeholder="아이디" 
             class="form-input" 
           />
         </div>
         
         <div class="form-group">
-          <label for="verificationCode">인증번호</label>
+          <label for="password">비밀번호</label>
           <i class="fas fa-key input-icon"></i>
           <input 
-            type="text" 
-            id="verificationCode" 
-            v-model="verificationCode" 
-            placeholder="인증번호" 
+            type="password" 
+            id="password" 
+            v-model="password" 
+            placeholder="비밀번호" 
             class="form-input" 
           />
         </div>
@@ -78,19 +78,19 @@ import { useRouter } from 'vue-router'
 const store = useStore()
 const router = useRouter()
 
-const phoneNumber = ref('')
-const verificationCode = ref('')
+const username = ref('')
+const password = ref('')
 
 const login = async () => {
-  if (!phoneNumber.value) {
-    alert('휴대폰 번호를 입력해주세요.')
+  if (!username.value) {
+    alert('아이디를 입력해주세요.')
     return
   }
   
   try {
     await store.dispatch('auth/login', {
-      phoneNumber: phoneNumber.value,
-      verificationCode: verificationCode.value
+      username: username.value,
+      password: password.value
     })
     router.push('/map')
   } catch (error) {

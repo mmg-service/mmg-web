@@ -19,61 +19,40 @@
       
       <div class="form-container">
         <div class="form-group">
-          <label for="phoneNumber">휴대폰 번호</label>
+          <label for="username">아이디</label>
           <div class="input-wrapper">
             <i class="fas fa-mobile-alt input-icon"></i>
             <input 
               type="text" 
-              id="phoneNumber"
-              v-model="phoneNumber" 
-              placeholder="휴대폰 번호" 
+              id="username"
+              v-model="username" 
+              placeholder="아이디를 입력해주세요." 
               class="form-input" 
             />
           </div>
         </div>
         
         <div class="form-group">
-          <label for="verificationCode">인증번호</label>
+          <label for="password">비밀번호</label>
           <div class="input-wrapper">
             <i class="fas fa-key input-icon"></i>
             <input 
-              type="text" 
-              id="verificationCode" 
-              v-model="verificationCode" 
-              placeholder="인증번호" 
+              type="password" 
+              id="password" 
+              v-model="password" 
+              placeholder="비밀번호를 8자 이상 입력해주세요" 
               class="form-input" 
-              :disabled="!isCodeSent"
-              ref="verificationInput"
             />
-            <button 
-              class="verification-btn" 
-              @click="requestVerificationCode" 
-              :disabled="isVerifying || !isValidPhone || isVerified"
-              :class="{ 'btn-success': isCodeSent, 'btn-disabled': !isValidPhone }"
-            >
-              {{ verificationBtnText }}
-            </button>
-          </div>
-          <div v-if="isCodeSent && !isVerified" class="verification-info">
-            인증번호가 발송되었습니다. ({{ countdown }}초)
-          </div>
-        </div>
-        
-        <div class="info-text">
-          <div class="info-icon"><i class="fas fa-info-circle"></i></div>
-          <div class="info-content">
-            <p>• 휴대폰 문자인증으로 시작할 것을 처리합니다.</p>
-            <p>• 기입한 휴대폰 번호로 인증됩니다.</p>
           </div>
         </div>
         
         <button 
           class="btn-primary" 
-          @click="register" 
+          @click="signup" 
           :disabled="!canRegister"
           :class="{ 'btn-disabled': !canRegister }"
         >
-          <i class="fas fa-check-circle"></i> {{ registerBtnText }}
+          <i class="fas fa-check-circle"></i> 회원가입
         </button>
         
         <div class="login-link">
@@ -103,113 +82,34 @@ import { useRouter } from 'vue-router';
 const store = useStore();
 const router = useRouter();
 
-const phoneNumber = ref('');
-const verificationCode = ref('');
-const isCodeSent = ref(false);
-const isVerifying = ref(false);
-const isVerified = ref(false);
-const countdown = ref(0);
-const generatedCode = ref('');
-let countdownTimer = null;
+const username = ref('');
+const password = ref('');
 
-// 버튼 텍스트 계산
-const verificationBtnText = computed(() => {
-  if (!isValidPhone.value) return '전송';
-  if (isVerifying.value) return '전송중...';
-  if (isCodeSent.value && !isVerified.value) return '재전송';
-  if (isVerified.value) return '인증됨';
-  return '전송';
-});
-
-const registerBtnText = computed(() => {
-  if (!isCodeSent.value) return '인증요청 및 가입완료';
-  if (!isVerified.value) return '인증 확인 후 가입완료';
-  return '가입완료';
-});
-
-// 전화번호 유효성 검사 - 모든 입력 허용
-const isValidPhone = computed(() => {
-  // 어떤 값이든 입력되어 있으면 true 반환
-  return phoneNumber.value.trim().length > 0;
-});
-
-// 인증번호 확인 및 가입 가능 여부
+// 아이디/비밀번호 확인 및 가입 가능 여부
 const canRegister = computed(() => {
-  if (!isCodeSent.value) return isValidPhone.value; // 인증 요청 전
-  return verificationCode.value.length > 0; // 인증번호가 입력되어 있으면 버튼 활성화
+  return username.value.length && password.value.length >= 8; // 아이디/비밀번호가 입력되어 있으면 버튼 활성화
 });
-
-// 인증번호 요청 함수
-const requestVerificationCode = async () => {
-  isVerifying.value = true;
-  
-  try {
-    // 실제 백엔드 요청 대신 랜덤 코드 생성으로 시뮬레이션
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 지연으로 API 호출 시뮬레이션
-    
-    // 랜덤 6자리 숫자 생성
-    generatedCode.value = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    isCodeSent.value = true;
-    
-    // 자동으로 인증번호 입력
-    verificationCode.value = generatedCode.value;
-    
-    // 카운트다운 시작 (3분)
-    countdown.value = 180;
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) {
-        clearInterval(countdownTimer);
-      }
-    }, 1000);
-    
-    // 인증번호 입력 필드에 포커스
-    setTimeout(() => {
-      if (document.getElementById('verificationCode')) {
-        document.getElementById('verificationCode').focus();
-      }
-    }, 100);
-    
-  } catch (error) {
-    console.error('인증번호 요청 실패:', error);
-    // 오류 발생해도 진행되도록 처리
-    isCodeSent.value = true;
-    verificationCode.value = "123456";
-    generatedCode.value = "123456";
-  } finally {
-    isVerifying.value = false;
-  }
-};
 
 // 회원가입 및 인증 처리 함수
-const register = async () => {
-  // 인증번호 요청 전이라면 인증번호 요청
-  if (!isCodeSent.value) {
-    requestVerificationCode();
-    return;
+const signup = async () => {
+  try { 
+    const res = await store.dispatch('auth/signup', {
+      username: username.value,
+      password: password.value
+    })
+
+    if(res.message !== ""){
+      completeRegistration();
+    }
+  } catch (error) {
+    console.error('회원가입 실패:', error);
+    alert('회원가입 실패');
   }
-  
-  // 인증번호 확인 없이 항상 성공 처리
-  isVerified.value = true;
-  alert('인증이 완료되었습니다.');
-  
-  // 자동으로 가입 진행
-  setTimeout(() => {
-    completeRegistration();
-  }, 500);
 };
 
 // 가입 완료 함수
 const completeRegistration = async () => {
   try {
-    // Vuex 액션 호출 없이 바로 성공 처리
-    console.log('회원가입 완료:', {
-      phoneNumber: phoneNumber.value,
-      verificationCode: verificationCode.value
-    });
-    
     // 성공 메시지 표시
     alert('회원가입이 완료되었습니다!');
     
@@ -218,7 +118,8 @@ const completeRegistration = async () => {
   } catch (error) {
     console.error('에러 발생:', error);
     // 에러 발생해도 라우팅
-    router.push('/map');
+    // router.push('/map');
+    alert('에러가 발생했습니다.')
   }
 };
 
@@ -226,12 +127,6 @@ const goToLogin = () => {
   router.push('/login');
 };
 
-// 컴포넌트 해제 시 타이머 정리
-onUnmounted(() => {
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-  }
-});
 </script>
 
 <style scoped>
