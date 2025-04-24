@@ -1,15 +1,12 @@
 def PIPELINE_ID = "${env.BUILD_NUMBER}"
 
 def getImageTag() {
-    def sdf = new SimpleDateFormat("yyyyMMddHHmmss")
-    sdf.timeZone = TimeZone.getTimeZone("Asia/Seoul")
-    return sdf.format(new Date())
 
-    // def dateFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmss')
-    // dateFormat.setTimeZone(TimeZone.getTimeZone('Asia/Seoul'))
+    def dateFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmss')
+    dateFormat.setTimeZone(TimeZone.getTimeZone('Asia/Seoul'))
 
-    // def currentDate = new Date()
-    // return dateFormat.format(currentDate)
+    def currentDate = new Date()
+    return dateFormat.format(currentDate)
 }
 
 podTemplate(
