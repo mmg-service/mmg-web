@@ -606,7 +606,10 @@ const searchNaverPlaces = async (query, coords, radius) => {
         bounds.extend(new window.naver.maps.LatLng(place.mapy / 10000000, place.mapx / 10000000));
       });
       
-      map.fitBounds(bounds);
+      // map.fitBounds(bounds);
+      const center = bounds.getCenter();
+      map.setCenter(center);
+      map.setZoom(15);
     }
   } catch (error) {
     console.error('장소 검색 실패:', error);
@@ -628,10 +631,9 @@ const updateMapMarkers = (places) => {
   places.forEach((place, index) => {
     // 좌표가 네이버 좌표체계(EPSG:3857)로 제공되므로 변환 필요
     // 실제로는 더 정확한 변환이 필요할 수 있음
+    
     const lat = place.mapy / 10000000;
     const lng = place.mapx / 10000000;
-    // const point = new window.naver.maps.Point(place.mapx, place.mapy);
-    // const latLng = window.naver.maps.TransCoord.fromTM128ToLatLng(point);
     
     const marker = new window.naver.maps.Marker({
       position: new window.naver.maps.LatLng(lat, lng),
@@ -643,18 +645,6 @@ const updateMapMarkers = (places) => {
       },
       zIndex: 50
     });
-
-    // 변경: 변환된 좌표를 사용하여 마커 위치 설정
-    // const marker = new window.naver.maps.Marker({
-    //   position: latLng, // 변환된 위경도 좌표 사용
-    //   map: map,
-    //   title: place.title,
-    //   icon: {
-    //     content: createMarkerContent(place.title, place.category, index + 1),
-    //     anchor: new window.naver.maps.Point(15, 35)
-    //   },
-    //   zIndex: 50
-    // });
     
     // 마커 클릭 이벤트
     window.naver.maps.Event.addListener(marker, 'click', () => {
