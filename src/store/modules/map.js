@@ -89,6 +89,14 @@ export default {
     setMapCenter({ commit }, center) {
       commit('SET_MAP_CENTER', center);
     },
+
+    setUserLocation({ commit }, userPos) {
+      if (userPos.lat === 37.5666805 && userPos.lng === 126.9784147) {
+        alert('사용자 위치 정보 제공을 허용해주세요')
+      }
+
+      commit('SET_USER_LOCATION', userPos);
+    },
     
     // 지도 마커 업데이트
     updateMapMarkers({ commit }, markers) {
