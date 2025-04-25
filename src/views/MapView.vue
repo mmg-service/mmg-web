@@ -95,7 +95,7 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import axios from "axios";
 
-import Recommendation from '@/components/Recommendation.vue';
+import Recommendation from "@/components/Recommendation.vue";
 
 const store = useStore();
 const router = useRouter();
@@ -116,6 +116,8 @@ const isLoading = ref(false);
 const currentRecommendation = ref(null);
 const searchResults = ref([]);
 const userRadius = ref(1); // 1km
+
+const locationName = ref("");
 
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
@@ -273,29 +275,29 @@ const getAddress = async (userPos) => {
     const longitude = userPos.lng;
     const latitude = userPos.lat;
 
-    const apiKey = '343ca1816ffa4279a4a706469463a590'; // opencagedata.com에서 발급
+    const apiKey = "343ca1816ffa4279a4a706469463a590"; // opencagedata.com에서 발급
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}&language=ko`;
 
     const response = await fetch(url);
-        
+
     if (!response.ok) {
       throw new Error(`API 오류: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (data.results && data.results.length > 0) {
       // OpenCage API 응답에서 동 이름 추출 시도
       const components = data.results[0].components;
-      
+
       // 동 이름 찾기 시도 (여러 필드에 있을 수 있음)
       return components.suburb;
     }
   } catch (error) {
-    console.error('동 이름 가져오기 실패:', error);
+    console.error("동 이름 가져오기 실패:", error);
     throw error;
   }
-}
+};
 
 // 현재 위치 가져오기
 const getUserLocation = () => {
@@ -309,8 +311,11 @@ const getUserLocation = () => {
           lng: position.coords.longitude,
         };
 
-        getAddress(userPos).then(res => console.log('현재위치 동이름 : ', res))
-        
+        getAddress(userPos).then((res) =>
+          // console.log("현재위치 동이름 : ", res)
+          locationName.value = res
+        );
+
         // 스토어에 위치 저장
         store.dispatch("map/setUserLocation", userPos);
 
@@ -547,25 +552,32 @@ const searchPlaces = () => {
   isLoading.value = true;
 
   let searchTerm = searchKeyword.value;
+  
+
 
   // 검색어가 비어있으면 카테고리 기반 검색
+  // 검색어에 동이름 추가
   if (!searchTerm.trim()) {
     const categoryObj = foodCategories.find(
       (cat) => cat.value === activeCategory.value
     );
     searchTerm = categoryObj ? categoryObj.keyword + " 식당" : "식당";
   }
+  
+  searchTerm = `${searchTerm} ${locationName.value}`;
 
   // 현재 지도 중심 좌표 가져오기
-  let coords = "";
-  if (map && window.naver) {
-    const center = map.getCenter();
-    coords = `${center.lng()},${center.lat()}`;
-  } else if (userLocation.value) {
-    coords = `${userLocation.value.lng},${userLocation.value.lat}`;
-  }
+  // let coords = "";
+  // if (map && window.naver) {
+  //   const center = map.getCenter();
+  //   coords = `${center.lng()},${center.lat()}`;
+  // } else if (userLocation.value) {
+  //   coords = `${userLocation.value.lng},${userLocation.value.lat}`;
+  // }
 
-  searchNaverPlaces(searchTerm, coords);
+  // searchNaverPlaces(searchTerm, coords);
+  searchNaverPlaces(searchTerm);
+
 };
 
 // 네이버 지역 API로 장소 검색
@@ -589,8 +601,21 @@ const searchNaverPlaces = async (query, coords, radius) => {
     //   }
     // });
 
+    console.log("query", query)
+
+    const response = await axios.get('/api/recommendations/nearby', {
+      params: {
+        query, // 검색어 + 동이름
+        display: 10,
+        start: 1,
+        sort: 'random'
+      }
+    });
+
+
     // 백엔드 API 호출이 불가능하므로 샘플 데이터로 대체
-    const mockResults = generateMockSearchResults(query, coords, 10);
+    // const mockResults = generateMockSearchResults(query, coords, 10);
+    const mockResults = response;
 
     // 검색 결과 처리
     searchResults.value = mockResults;
