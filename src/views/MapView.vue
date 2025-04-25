@@ -268,6 +268,35 @@ const handleMapMoved = () => {
   }, 500);
 };
 
+const getAddress = async (userPos) => {
+  try {
+    const longitude = userPos.lng;
+    const latitude = userPos.lat;
+
+    const apiKey = '343ca1816ffa4279a4a706469463a590'; // opencagedata.com에서 발급
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}&language=ko`;
+
+    const response = await fetch(url);
+        
+    if (!response.ok) {
+      throw new Error(`API 오류: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      // OpenCage API 응답에서 동 이름 추출 시도
+      const components = data.results[0].components;
+      
+      // 동 이름 찾기 시도 (여러 필드에 있을 수 있음)
+      return components.suburb;
+    }
+  } catch (error) {
+    console.error('동 이름 가져오기 실패:', error);
+    throw error;
+  }
+}
+
 // 현재 위치 가져오기
 const getUserLocation = () => {
   isLoading.value = true;
@@ -280,6 +309,8 @@ const getUserLocation = () => {
           lng: position.coords.longitude,
         };
 
+        getAddress(userPos).then(res => console.log('현재위치 동이름 : ', res))
+        
         // 스토어에 위치 저장
         store.dispatch("map/setUserLocation", userPos);
 
