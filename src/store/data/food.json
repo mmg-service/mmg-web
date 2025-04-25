@@ -1,0 +1,30 @@
+{
+    "lastBuildDate": "Wed, 12 Apr 2023 12:34:56 +0900",
+    "total": 468,
+    "start": 1,
+    "display": 5,
+    "items": [
+      {
+        "title": "콩두마루 <b>강남</b>점",
+        "link": "https://search.naver.com/search.naver?query=콩두마루+강남점&ie=utf8&X-Naver-Client-Id=",
+        "category": "음식점>한식>백반",
+        "description": "백반, 정식, 한정식",
+        "telephone": "02-538-7202",
+        "address": "서울특별시 강남구 역삼동 819-5",
+        "roadAddress": "서울특별시 강남구 강남대로84길 33",
+        "mapx": "1292660474",
+        "mapy": "375929889"
+      },
+      {
+        "title": "서울식당 <b>강남</b>역점",
+        "link": "https://search.naver.com/search.naver?query=서울식당+강남역점&ie=utf8&X-Naver-Client-Id=",
+        "category": "음식점>한식",
+        "description": "칼국수, 비빔밥, 국밥",
+        "telephone": "02-555-4887",
+        "address": "서울특별시 강남구 역삼동 820-9",
+        "roadAddress": "서울특별시 강남구 테헤란로 156",
+        "mapx": "1292661234",
+        "mapy": "375934512"
+      }
+    ]
+  }
