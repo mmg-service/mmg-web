@@ -562,6 +562,8 @@ const searchPlaces = () => {
 // 네이버 지역 API로 장소 검색
 const searchNaverPlaces = async (query, coords, radius) => {
   isLoading.value = true;
+
+  console.log("searchNaverPlaces")
   
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
@@ -581,8 +583,8 @@ const searchNaverPlaces = async (query, coords, radius) => {
     // });
     
     // 백엔드 API 호출이 불가능하므로 샘플 데이터로 대체
-    // const mockResults = generateMockSearchResults(query, coords, 10);
-    const mockResults = foodData.items
+    const mockResults = generateMockSearchResults(query, coords, 10);
+    // const mockResults = foodData.items
 
 
     // 검색 결과 처리
