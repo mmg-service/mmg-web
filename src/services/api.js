@@ -50,4 +50,16 @@ api.interceptors.response.use(
   }
 )
 
+export function requestWithBaseURL(baseURL) {
+  const instance = axios.create({
+    baseURL,
+    timeout: Number(process.env.VUE_APP_TIMEOUT) || 10000
+  })
+
+  instance.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
+  instance.interceptors.response.use(api.interceptors.response.handlers[0].fulfilled, api.interceptors.response.handlers[0].rejected)
+
+  return instance
+}
+
 export default api

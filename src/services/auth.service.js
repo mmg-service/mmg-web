@@ -1,8 +1,11 @@
-import api from './api'
+import { requestWithBaseURL } from './api'
+const memberApi = requestWithBaseURL(process.env.VUE_APP_MEMBER_API_URL)
 
 class AuthService {
   async login(user) {
-    const response = await api.post('/auth/login', {
+    console.log('Using baseURL:', process.env.VUE_APP_MEMBER_API_URL)
+
+    const response = await memberApi.post('/auth/login', {
       username: user.username,
       password: user.password
     })
@@ -21,7 +24,7 @@ class AuthService {
   }
 
   async signup(user) {
-    const response = await api.post('/auth/signup', {
+    const response = await memberApi.post('/auth/signup', {
       username: user.username,
       password: user.password
     })

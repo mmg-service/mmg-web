@@ -72,10 +72,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useStore } from 'vuex'
+import authService from '@/services/auth.service'
 import { useRouter } from 'vue-router'
 
-const store = useStore()
 const router = useRouter()
 
 const username = ref('')
@@ -88,10 +87,11 @@ const login = async () => {
   }
   
   try {
-    await store.dispatch('auth/login', {
+    const user = await authService.login({
       username: username.value,
       password: password.value
     })
+    console.log(user)
     router.push('/map')
   } catch (error) {
     console.error('로그인 실패:', error)
@@ -100,7 +100,7 @@ const login = async () => {
 }
 
 const goToRegister = () => {
-  router.push('/register')
+  router.push('/signUp')
 }
 </script>
 

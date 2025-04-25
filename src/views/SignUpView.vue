@@ -76,10 +76,9 @@
 
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
-import { useStore } from 'vuex';
+import authService from '@/services/auth.service'
 import { useRouter } from 'vue-router';
 
-const store = useStore();
 const router = useRouter();
 
 const username = ref('');
@@ -93,7 +92,7 @@ const canRegister = computed(() => {
 // 회원가입 및 인증 처리 함수
 const signup = async () => {
   try { 
-    const res = await store.dispatch('auth/signup', {
+    const res = await authService.signup({
       username: username.value,
       password: password.value
     })
