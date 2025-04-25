@@ -180,7 +180,7 @@ const loadNaverMapsScript = () => {
     showMapErrorMessage();
   };
 
-  script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=pqo3hwvpqb&submodules=geocoder`;
+  script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=q58itu6nad&submodules=geocoder`;
   script.async = true;
   script.onload = () => {
     // 스크립트 로드 후 지연 (인증 처리 시간 확보)
