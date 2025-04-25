@@ -25,7 +25,7 @@ const routes = [
   {
     path: '/map',
     name: 'Map',
-    component: () => import('@/components/map/MapView.vue')
+    component: () => import('@/views/MapView.vue')
   },
   {
     path: '/search',
