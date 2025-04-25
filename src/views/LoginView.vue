@@ -100,7 +100,7 @@ const login = async () => {
 }
 
 const goToRegister = () => {
-  router.push('/register')
+  router.push('/signUp')
 }
 </script>
 
