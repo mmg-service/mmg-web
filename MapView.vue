@@ -760,8 +760,8 @@ const resetMapAndSearch = () => {
   searchKeyword.value = '';
   
   // 기본 카테고리로 리셋
-  activeCategory.value = 'korean';
-  activeTheme.value = 'popular';
+  // activeCategory.value = 'korean';
+  // activeTheme.value = 'popular';
   
   // 현재 위치 기준으로 지도 초기화
   centerToMyLocation();
