@@ -6,6 +6,7 @@ import SearchView from '../views/SearchView.vue'
 import DetailView from '../views/DetailView.vue'
 import FilteredResultView from '../views/FilteredResultView.vue'
 import CurationView from '../views/CurationView.vue'
+import MenuOrderView from '../views/MenuOrderView.vue'
 
 const routes = [
   {
@@ -47,6 +48,11 @@ const routes = [
     path: '/curation',
     name: 'Curation',
     component: CurationView
+  },
+  {
+    path: '/order',
+    name: 'MenuOrder',
+    component: MenuOrderView
   }
 ]
 
