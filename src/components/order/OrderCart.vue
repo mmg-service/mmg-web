@@ -2,13 +2,13 @@
 <template>
     <div class="order-cart">
       <div class="cart-header">
-        <h3>장바구니</h3>
+        <h3>주문내역</h3>
         <button v-if="cartItems.length > 0" @click="clearCart" class="clear-cart-button">전체 삭제</button>
       </div>
       
       <div v-if="cartItems.length === 0" class="empty-cart">
         <i class="fas fa-shopping-cart empty-cart-icon"></i>
-        <p>장바구니가 비어있습니다.</p>
+        <p>주문내역이 비어있습니다.</p>
       </div>
       
       <div v-else class="cart-items">

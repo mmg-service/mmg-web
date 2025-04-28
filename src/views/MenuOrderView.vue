@@ -15,7 +15,7 @@
       </header>
       
       <div class="menu-tabs">
-        <button class="tab-button active">분식</button>
+        <button class="tab-button active">주메뉴</button>
         <button class="tab-button">사이드</button>
         <button class="tab-button">음료</button>
       </div>
@@ -47,7 +47,7 @@
         </button>
       </div>
       
-      <!-- 장바구니 모달 -->
+      <!-- 주문내역 모달 -->
       <div class="cart-modal" v-if="showCart">
         <div class="cart-modal-content">
           <div class="cart-modal-header">
@@ -68,7 +68,7 @@
             </div>
           </div>
           <div class="cart-empty" v-else>
-            <p>장바구니가 비어있습니다.</p>
+            <p>주문내역이 비어있습니다.</p>
           </div>
           <div class="cart-total">
             <p>총 주문금액: <strong>{{ formatPrice(totalAmount) }}원</strong></p>
@@ -179,7 +179,7 @@
         if (this.cartItems.length > 0) {
           // 주문 처리 로직이 필요하면 여기에 추가
           this.orderComplete = true;
-          // 주문 완료 후 장바구니 비우기
+          // 주문 완료 후 주문내역 비우기
           this.cartItems = [];
         }
       }
