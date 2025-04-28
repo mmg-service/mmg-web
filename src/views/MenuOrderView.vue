@@ -2,10 +2,16 @@
 <template>
     <div class="menu-order-page">
       <header class="page-header">
-        <div class="back-button" @click="goBack">
-          <i class="fas fa-arrow-left"></i>
+        <div class="left-section">
+          <div class="back-button" @click="goBack">
+            <i class="fas fa-arrow-left"></i>
+          </div>
+          <h1 class="page-title">메뉴주문</h1>
         </div>
-        <h1 class="page-title">메뉴주문</h1>
+        <div class="logo-container">
+          <img src="@/assets/images/kt-logo.png" alt="KT 로고" class="kt-logo">
+          <span class="hiorder-text">하이오더</span>
+        </div>
       </header>
       
       <div class="menu-tabs">
@@ -182,6 +188,22 @@
   </script>
   
   <style scoped>
+  .logo-container {
+    display: flex;
+    align-items: right;
+  }
+
+  .kt-logo {
+    height: 24px;
+    margin-right: 4px;
+  }
+
+  .hiorder-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+  }
+
   .menu-order-page {
     display: flex;
     flex-direction: column;
@@ -192,9 +214,15 @@
   .page-header {
     display: flex;
     align-items: center;
+    justify-content: space-between; /* 좌우 정렬을 위해 변경 */
     padding: 1rem;
     background-color: #fff;
     border-bottom: 1px solid #eee;
+  }
+
+  .left-section {
+    display: flex;
+    align-items: center;
   }
   
   .back-button {
