@@ -561,7 +561,7 @@ const searchNaverPlaces = async () => {
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
     const response = await recommendationService.recommendNearby({
-      query
+      query,
     });
 
     const mockResults = response.items;
@@ -574,9 +574,12 @@ const searchNaverPlaces = async () => {
 
     const aiRecommend = JSON.parse(response.claudeItem);
 
+    console.log(aiRecommend.recommendation);
+
     // 첫 번째 결과로 추천 정보 설정
     if (mockResults.length > 0) {
-      setRecommendation(mockResults[0], aiRecommend.recommendation.reason); // ai recommend
+      // setRecommendation(mockResults[0], aiRecommend.recommendation.reason); // ai recommend
+      setRecommendation(mockResults[0], aiRecommend.recommendation);
     } else {
       currentRecommendation.value = null;
     }
@@ -673,7 +676,7 @@ const showInfoWindow = (place, marker) => {
 };
 
 // 추천 정보 설정
-const setRecommendation = (place, aiReason) => {
+const setRecommendation = (place, aiRecommend = null) => {
   if (!place) {
     currentRecommendation.value = null;
     return;
@@ -698,24 +701,26 @@ const setRecommendation = (place, aiReason) => {
   const cleanCategory = place.category.replace(/<[^>]*>/g, "");
   const cleanAddress = place.address.replace(/<[^>]*>/g, "");
 
-
   // 추천 정보 구성
   currentRecommendation.value = {
     id: place.id,
-    name: cleanTitle,
-    category: cleanCategory,
-    rating: place.rating || (4 + Math.random()).toFixed(1), // 샘플 데이터에는 평점이 없어서 임의 생성
+    name: aiRecommend?.title || cleanTitle,
+    category: aiRecommend?.category || cleanCategory,
+    rating: place.rating || (4 + Math.random()).toFixed(1), // 평점은 그대로 유지
     distance,
-    address: cleanAddress,
-    phone: place.telephone || "",
-    image:
+    address: aiRecommend?.address || cleanAddress,
+    phone: aiRecommend?.telephone || place.telephone || "",
+    image:     // 이미지
       place.image ||
       `https://via.placeholder.com/80?text=${encodeURIComponent(
-        cleanTitle.substring(0, 5)
+        (aiRecommend?.title || cleanTitle).substring(0, 5)
       )}`,
-    mapx: place.mapx,
+    mapx: place.mapx, // claudeItem에 추가필요
     mapy: place.mapy,
-    aiReason: aiReason || generateRecommendationReason(place, distance), // 첫 검색시에만 ai 추천
+    aiReason:
+      aiRecommend?.reason || generateRecommendationReason(place, distance),
+    aiMenus: aiRecommend?.menus || null,
+    aiMenuText: aiRecommend?.menu || null,
   };
 };
 
@@ -787,7 +792,6 @@ const openNaverMap = (place) => {
 const goToMyPage = () => {
   router.push({ name: "MyPage" });
 };
-
 </script>
 
 <style scoped>
