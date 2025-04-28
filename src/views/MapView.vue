@@ -560,9 +560,9 @@ const searchNaverPlaces = async () => {
 
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-    // const response = await recommendationService.recommendNearby({
-    //   query
-    // });
+    const response = await recommendationService.recommendNearby({
+      query
+    });
 
     const mockResults = response.items;
 
