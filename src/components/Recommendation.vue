@@ -34,6 +34,7 @@
               <i class="fas fa-map-marker-alt"></i> {{ currentRecommendation.distance || '거리 정보 없음' }}
             </p>
           </div>
+          <router-link to="/order" class="order-button">하이<br>오더</router-link>
         </div>
 
         <div class="ai-reason">
@@ -139,7 +140,10 @@ const props = defineProps({
 }
 
 .restaurant-info {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
 }
 
 .restaurant-info h3 {
@@ -224,5 +228,39 @@ const props = defineProps({
 .view-details-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 12px rgba(3, 199, 90, 0.35);
+}
+
+.order-button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 10px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* restaurant-info 스타일 수정 */
+.restaurant-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* restaurant-preview 스타일 수정 */
+.restaurant-preview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
 }
 </style>
