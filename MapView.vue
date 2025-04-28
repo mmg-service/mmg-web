@@ -98,7 +98,6 @@
               <p class="distance"><i class="fas fa-map-marker-alt"></i> {{ currentRecommendation.distance || '거리 정보 없음' }}</p>
             </div>
           </div>
-          
           <div class="ai-reason">
             <div class="reason-label">추천 이유:</div>
             <p>{{ currentRecommendation.aiReason || '이 매장은 현재 위치에서 가장 가까운 매장입니다.' }}</p>

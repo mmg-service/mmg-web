@@ -90,35 +90,35 @@
             id: 1,
             name: '꼬짜떡볶이',
             price: 5000,
-            image: require('@/assets/images/menu-tteokbokki-1.jpg'),
+            image: require('@/assets/images/sample_small_menu_tteokbokki_1.jpg'),
             isBest: true
           },
           {
             id: 2,
             name: '돈까스떡볶이',
             price: 6000,
-            image: require('@/assets/images/menu-tteokbokki-2.jpg'),
+            image: require('@/assets/images/sample_small_menu_tteokbokki_2.jpg'),
             isBest: false
           },
           {
             id: 3,
             name: '즉석떡볶이',
             price: 9000,
-            image: require('@/assets/images/menu-tteokbokki-3.jpg'),
+            image: require('@/assets/images/sample_small_menu_tteokbokki_1.jpg'),
             isBest: false
           },
           {
             id: 4,
             name: '치즈떡볶이',
             price: 6500,
-            image: require('@/assets/images/menu-tteokbokki-1.jpg'),
+            image: require('@/assets/images/sample_small_menu_tteokbokki_1.jpg'),
             isBest: false
           },
           {
             id: 5,
             name: '매운떡볶이',
             price: 5500,
-            image: require('@/assets/images/menu-tteokbokki-2.jpg'),
+            image: require('@/assets/images/sample_small_menu_tteokbokki_2.jpg'),
             isBest: false
           }
         ],
