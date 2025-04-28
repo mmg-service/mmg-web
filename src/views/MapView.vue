@@ -94,6 +94,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import recommendationService from "@/services/recommendation.service";
 
 import Recommendation from "@/components/Recommendation.vue";
 
@@ -311,9 +312,10 @@ const getUserLocation = () => {
           lng: position.coords.longitude,
         };
 
-        getAddress(userPos).then((res) =>
-          // console.log("현재위치 동이름 : ", res)
-          locationName.value = res
+        getAddress(userPos).then(
+          (res) =>
+            // console.log("현재위치 동이름 : ", res)
+            (locationName.value = res)
         );
 
         // 스토어에 위치 저장
@@ -552,8 +554,6 @@ const searchPlaces = () => {
   isLoading.value = true;
 
   let searchTerm = searchKeyword.value;
-  
-
 
   // 검색어가 비어있으면 카테고리 기반 검색
   // 검색어에 동이름 추가
@@ -563,7 +563,7 @@ const searchPlaces = () => {
     );
     searchTerm = categoryObj ? categoryObj.keyword + " 식당" : "식당";
   }
-  
+
   searchTerm = `${searchTerm} ${locationName.value}`;
 
   // 현재 지도 중심 좌표 가져오기
@@ -577,7 +577,6 @@ const searchPlaces = () => {
 
   // searchNaverPlaces(searchTerm, coords);
   searchNaverPlaces(searchTerm);
-
 };
 
 // 네이버 지역 API로 장소 검색
@@ -586,42 +585,21 @@ const searchNaverPlaces = async (query, coords, radius) => {
 
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-    // 프론트엔드에서 직접 호출하면 CORS 및 보안 문제 발생
-    // 여기서는 예시로 프록시 서버를 통해 호출한다고 가정
 
-    // 실제 구현 시에는 백엔드 API를 통해 호출해야 함
-    // const response = await axios.get('/api/search/local', {
-    //   params: {
-    //     query,
-    //     display: 10,
-    //     start: 1,
-    //     sort: 'random',
-    //     coords,
-    //     radius: radius || 5000 // 기본 5km
-    //   }
-    // });
-
-    console.log("query", query)
-
-    const response = await axios.get('/api/recommendations/nearby', {
-      params: {
-        query, // 검색어 + 동이름
-        display: 10,
-        start: 1,
-        sort: 'random'
-      }
+    const response = await recommendationService.recommendNearby({
+      query
     });
 
-
+    console.log("test: ", response)
     // 백엔드 API 호출이 불가능하므로 샘플 데이터로 대체
     // const mockResults = generateMockSearchResults(query, coords, 10);
-    const mockResults = response;
+    const mockResults = response.items;
 
     // 검색 결과 처리
     searchResults.value = mockResults;
 
     // 마커 생성
-    updateMapMarkers(mockResults);
+    updateMapMarkers(searchResults.value);
 
     // 첫 번째 결과로 추천 정보 설정
     if (mockResults.length > 0) {
