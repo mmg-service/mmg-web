@@ -15,7 +15,7 @@
       </header>
       
       <div class="menu-tabs">
-        <button class="tab-button active">분식</button>
+        <button class="tab-button active">주메뉴</button>
         <button class="tab-button">사이드</button>
         <button class="tab-button">음료</button>
       </div>
