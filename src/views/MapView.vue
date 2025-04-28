@@ -6,7 +6,7 @@
         <input
           type="text"
           v-model="searchKeyword"
-          placeholder="장소, 메뉴, 지역 검색"
+          placeholder="키워드 검색"
           @keyup.enter="searchPlaces"
         />
         <button class="search-btn" @click="searchPlaces">
@@ -33,7 +33,7 @@
           </div>
         </div>
 
-        <div class="category-section">
+        <!-- <div class="category-section">
           <div class="category-title">분위기</div>
           <div class="categories-row">
             <button
@@ -45,7 +45,7 @@
               {{ theme.label }}
             </button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -53,7 +53,7 @@
     <div class="map-container">
       <div id="map" ref="mapElement"></div>
 
-      <div class="map-controls">
+      <!-- <div class="map-controls">
         <button class="map-btn location-btn" @click="centerToMyLocation">
           <i class="fas fa-location-arrow"></i>
         </button>
@@ -67,7 +67,7 @@
         <button class="map-btn recommend-btn" @click="showRecommendations">
           <i class="fas fa-utensils"></i> <span class="btn-text">매장추천</span>
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- 하단 추천 영역 -->
@@ -81,10 +81,10 @@
       <button class="action-btn" @click="centerToMyLocation">
         <i class="fas fa-location-arrow"></i>
       </button>
-      <div class="recommendation">
+      <!-- <div class="recommendation">
         맛집 {{ searchResults.length }}개를 확인하려면?
       </div>
-      <div class="page-indicator" @click="goToMyPage">내정보</div>
+      <div class="page-indicator" @click="goToMyPage">내정보</div> -->
     </div>
   </div>
 </template>
@@ -130,10 +130,10 @@ const foodCategories = [
 
 // 테마 옵션 목록 - 네이버 지역 API 검색용 키워드 매핑
 const themeOptions = [
-  { label: "가볍게", value: "light", keyword: "분식" },
-  { label: "푸짐하게", value: "hearty", keyword: "푸짐한 식당" },
-  { label: "나만의", value: "personal", keyword: "맛집" },
-  { label: "인기있는", value: "popular", keyword: "인기 맛집" },
+  { label: "가볍게", value: "light", keyword: "가벼운" },
+  { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
+  // { label: "나만의", value: "personal", keyword: "맛집" },
+  { label: "인기있는", value: "popular", keyword: "인기있는" },
 ];
 
 // 스토어에서 가져오는 값들
@@ -376,7 +376,7 @@ const getUserLocation = () => {
       );
 
       // 기본 위치 기반 검색 수행
-      searchNearbyPlaces();
+      // searchNearbyPlaces();
     }
 
     isLoading.value = false;
@@ -404,7 +404,7 @@ const centerToMyLocation = () => {
       addUserLocationMarker(userLocation.value);
 
       // 현재 위치 기반 검색 수행
-      searchNearbyPlaces();
+      // searchNearbyPlaces();
     } catch (error) {
       console.error("지도 중심 이동 실패:", error);
     }
@@ -484,17 +484,20 @@ const searchNearbyPlaces = () => {
     return;
   }
 
-  // 카테고리 키워드 가져오기
-  const categoryObj = foodCategories.find(
-    (cat) => cat.value === activeCategory.value
-  );
-  const categoryKeyword = categoryObj ? categoryObj.keyword : "";
+  let searchTerm = searchKeyword.value;
+
+  // 검색어에 동이름 추가
+  if (!searchTerm.trim()) {
+    const categoryObj = foodCategories.find(
+      (cat) => cat.value === activeCategory.value
+    );
+    searchTerm = categoryObj ? categoryObj.keyword: "";
+  }
 
   // 현재 위치 주변 식당 검색
-  const query = categoryKeyword + " 식당";
-  const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
+  searchTerm = `${locationName.value} ${searchKeyword.value}`;
 
-  searchNaverPlaces(query, coords);
+  searchNaverPlaces(searchTerm);
 };
 
 // 매장 추천 표시
@@ -514,7 +517,7 @@ const showRecommendations = () => {
   const query = themeKeyword;
   const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
 
-  searchNaverPlaces(query, coords);
+  // searchNaverPlaces(query, coords);
 };
 
 // 특정 범위 내 검색
@@ -531,7 +534,7 @@ const filterByDistance = () => {
   const categoryKeyword = categoryObj ? categoryObj.keyword : "";
 
   // 현재 위치 주변 1km 내 식당 검색
-  const query = categoryKeyword + " 식당";
+  const query = categoryKeyword;
   const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
 
   // 지도에 1km 반경 표시
@@ -546,7 +549,7 @@ const filterByDistance = () => {
     map.setZoom(14);
   }
 
-  searchNaverPlaces(query, coords, 1000); // 1000m = 1km
+  // searchNaverPlaces(query, coords, 1000); // 1000m = 1km
 };
 
 // 검색창 검색
@@ -561,10 +564,10 @@ const searchPlaces = () => {
     const categoryObj = foodCategories.find(
       (cat) => cat.value === activeCategory.value
     );
-    searchTerm = categoryObj ? categoryObj.keyword + " 식당" : "식당";
+    searchTerm = categoryObj ? categoryObj.keyword: "";
   }
 
-  searchTerm = `${searchTerm} ${locationName.value}`;
+  searchTerm = `${locationName.value} ${searchTerm}`;
 
   searchNaverPlaces(searchTerm);
 };
@@ -782,7 +785,7 @@ const resetMapAndSearch = () => {
   centerToMyLocation();
 
   // 현재 위치 기반 검색 수행
-  searchNearbyPlaces();
+  // searchNearbyPlaces();
 };
 
 // 네이버 지도 앱/웹으로 열기
@@ -803,92 +806,6 @@ const goToMyPage = () => {
   router.push({ name: "MyPage" });
 };
 
-// 샘플 검색 결과 생성 (실제 API 대신 사용)
-const generateMockSearchResults = (query, coords, count = 10) => {
-  const [lng, lat] = coords.split(",");
-  const baseLatLng = { lat: parseFloat(lat), lng: parseFloat(lng) };
-
-  // 음식 종류 추출
-  let foodType = "식당";
-  foodCategories.forEach((category) => {
-    if (query.includes(category.keyword)) {
-      foodType = category.keyword;
-    }
-  });
-
-  // 검색 결과 생성
-  const results = [];
-
-  // 음식점 이름 샘플
-  const restaurantNames = [
-    "맛있는",
-    "행복한",
-    "즐거운",
-    "신선한",
-    "향기로운",
-    "정성담은",
-    "건강한",
-    "푸짐한",
-    "특별한",
-    "착한",
-    "새로운",
-    "인기있는",
-    "추천",
-    "명품",
-    "고급스러운",
-  ];
-
-  // 주소 샘플
-  const addresses = [
-    "서울시 강남구",
-    "서울시 서초구",
-    "서울시 송파구",
-    "서울시 마포구",
-    "서울시 종로구",
-    "서울시 용산구",
-    "서울시 중구",
-    "서울시 성동구",
-    "서울시 영등포구",
-    "서울시 동작구",
-    "서울시 강서구",
-    "서울시 광진구",
-  ];
-
-  for (let i = 0; i < count; i++) {
-    // 현재 위치 주변 랜덤 좌표 생성 (약 2km 이내)
-    const randomLat = baseLatLng.lat + (Math.random() - 0.5) * 0.02;
-    const randomLng = baseLatLng.lng + (Math.random() - 0.5) * 0.03;
-
-    // 랜덤 매장명 생성
-    const nameIndex = Math.floor(Math.random() * restaurantNames.length);
-    const addressIndex = Math.floor(Math.random() * addresses.length);
-
-    const streetNumber = Math.floor(Math.random() * 100) + 1;
-    const buildingName =
-      String.fromCharCode(65 + Math.floor(Math.random() * 26)) + "빌딩";
-
-    results.push({
-      id: `place_${i}`,
-      title: `${restaurantNames[nameIndex]} ${foodType}`,
-      link: `https://map.naver.com/v5/entry/place/${i}`,
-      category: foodType,
-      description: `맛있는 ${foodType}을 제공하는 음식점입니다.`,
-      telephone: `02-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(
-        1000 + Math.random() * 9000
-      )}`,
-      address: `${addresses[addressIndex]} ${streetNumber}길 ${
-        Math.floor(Math.random() * 30) + 1
-      } ${buildingName}`,
-      roadAddress: `${addresses[addressIndex]} ${streetNumber}길 ${
-        Math.floor(Math.random() * 30) + 1
-      }`,
-      mapx: randomLng * 10000000, // 네이버 API 좌표 형식 (X/Y를 10000000으로 나눠야 실제 좌표)
-      mapy: randomLat * 10000000,
-    });
-  }
-
-  return results;
-};
 </script>
 
 <style scoped>
