@@ -20,10 +20,6 @@
 
       <template v-else>
         <div class="restaurant-preview">
-          <div 
-            class="restaurant-image" 
-            :style="`background-image: url(${currentRecommendation.image || 'https://via.placeholder.com/80?text=No+Image'})`">
-          </div>
           <div class="restaurant-info">
             <h3>{{ currentRecommendation.name }}</h3>
             <div class="rating">
@@ -129,19 +125,8 @@ const props = defineProps({
   border-bottom: 1px solid #eee;
 }
 
-.restaurant-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  background-size: cover;
-  background-position: center;
-  margin-right: 15px;
-  flex-shrink: 0;
-}
-
 .restaurant-info {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   flex-direction: row;
 }
