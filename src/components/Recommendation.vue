@@ -231,9 +231,9 @@ const props = defineProps({
 }
 
 .order-button {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
+  background-color: white;
+  border: 1px solid #ddd;
+  color: black;
   padding: 10px 20px;
   text-align: center;
   text-decoration: none;
@@ -245,6 +245,11 @@ const props = defineProps({
   margin-left: 10px;
   vertical-align: middle;
   white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.order-button:hover {
+  background-color: #f9f9f9;
 }
 
 /* restaurant-info 스타일 수정 */

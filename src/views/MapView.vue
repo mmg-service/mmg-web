@@ -472,10 +472,10 @@ const setCategoryAndSearch = (category) => {
 };
 
 // 테마 설정 및 검색
-const setThemeAndSearch = (theme) => {
-  activeTheme.value = theme;
-  searchPlaces();
-};
+// const setThemeAndSearch = (theme) => {
+//   activeTheme.value = theme;
+//   searchPlaces();
+// };
 
 // 사용자 위치 주변 장소 검색
 const searchNearbyPlaces = () => {
@@ -484,20 +484,7 @@ const searchNearbyPlaces = () => {
     return;
   }
 
-  let searchTerm = searchKeyword.value;
-
-  // 검색어에 동이름 추가
-  if (!searchTerm.trim()) {
-    const categoryObj = foodCategories.find(
-      (cat) => cat.value === activeCategory.value
-    );
-    searchTerm = categoryObj ? categoryObj.keyword: "";
-  }
-
-  // 현재 위치 주변 식당 검색
-  searchTerm = `${locationName.value} ${searchKeyword.value}`;
-
-  searchNaverPlaces(searchTerm);
+  searchNaverPlaces();
 };
 
 // 매장 추천 표시
@@ -556,31 +543,26 @@ const filterByDistance = () => {
 const searchPlaces = () => {
   isLoading.value = true;
 
-  let searchTerm = searchKeyword.value;
-
-  // 검색어가 비어있으면 카테고리 기반 검색
-  // 검색어에 동이름 추가
-  if (!searchTerm.trim()) {
-    const categoryObj = foodCategories.find(
-      (cat) => cat.value === activeCategory.value
-    );
-    searchTerm = categoryObj ? categoryObj.keyword: "";
-  }
-
-  searchTerm = `${locationName.value} ${searchTerm}`;
-
-  searchNaverPlaces(searchTerm);
+  searchNaverPlaces();
 };
 
 // 네이버 지역 API로 장소 검색
-const searchNaverPlaces = async (query, coords, radius) => {
+const searchNaverPlaces = async () => {
   isLoading.value = true;
+
+  // 카테고리 키워드 가져오기
+  const categoryObj = foodCategories.find(
+    (cat) => cat.value === activeCategory.value
+  );
+  const categoryKeyword = categoryObj ? categoryObj.keyword : "";
+
+  const query = `${locationName.value} ${categoryKeyword} ${searchKeyword.value}`;
 
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-    const response = await recommendationService.recommendNearby({
-      query
-    });
+    // const response = await recommendationService.recommendNearby({
+    //   query
+    // });
 
     const mockResults = response.items;
 
