@@ -6,7 +6,7 @@
         <input
           type="text"
           v-model="searchKeyword"
-          placeholder="장소, 메뉴, 지역 검색"
+          placeholder="키워드 검색"
           @keyup.enter="searchPlaces"
         />
         <button class="search-btn" @click="searchPlaces">
@@ -33,7 +33,7 @@
           </div>
         </div>
 
-        <div class="category-section">
+        <!-- <div class="category-section">
           <div class="category-title">분위기</div>
           <div class="categories-row">
             <button
@@ -45,7 +45,7 @@
               {{ theme.label }}
             </button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -53,7 +53,7 @@
     <div class="map-container">
       <div id="map" ref="mapElement"></div>
 
-      <div class="map-controls">
+      <!-- <div class="map-controls">
         <button class="map-btn location-btn" @click="centerToMyLocation">
           <i class="fas fa-location-arrow"></i>
         </button>
@@ -67,7 +67,7 @@
         <button class="map-btn recommend-btn" @click="showRecommendations">
           <i class="fas fa-utensils"></i> <span class="btn-text">매장추천</span>
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- 하단 추천 영역 -->
@@ -81,10 +81,10 @@
       <button class="action-btn" @click="centerToMyLocation">
         <i class="fas fa-location-arrow"></i>
       </button>
-      <div class="recommendation">
+      <!-- <div class="recommendation">
         맛집 {{ searchResults.length }}개를 확인하려면?
       </div>
-      <div class="page-indicator" @click="goToMyPage">내정보</div>
+      <div class="page-indicator" @click="goToMyPage">내정보</div> -->
     </div>
   </div>
 </template>
@@ -94,8 +94,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import recommendService from '@/services/recommend.service'
 
-import Recommendation from '@/components/Recommendation.vue';
+import Recommendation from "@/components/Recommendation.vue";
 
 const store = useStore();
 const router = useRouter();
@@ -117,6 +118,8 @@ const currentRecommendation = ref(null);
 const searchResults = ref([]);
 const userRadius = ref(1); // 1km
 
+const locationName = ref("");
+
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
   { label: "한식", value: "korean", keyword: "한식" },
@@ -127,10 +130,9 @@ const foodCategories = [
 
 // 테마 옵션 목록 - 네이버 지역 API 검색용 키워드 매핑
 const themeOptions = [
-  { label: "가볍게", value: "light", keyword: "분식" },
-  { label: "푸짐하게", value: "hearty", keyword: "푸짐한 식당" },
-  { label: "나만의", value: "personal", keyword: "맛집" },
-  { label: "인기있는", value: "popular", keyword: "인기 맛집" },
+  { label: "가볍게", value: "light", keyword: "가벼운" },
+  { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
+  { label: "인기있는", value: "popular", keyword: "인기있는" },
 ];
 
 // 스토어에서 가져오는 값들
@@ -240,7 +242,7 @@ const initMap = () => {
       addUserLocationMarker(userLocation.value);
 
       // 현재 위치 기반 검색 수행
-      searchNearbyPlaces();
+      // searchNearbyPlaces();
     }
   } catch (error) {
     console.error("네이버 지도 초기화 실패:", error);
@@ -273,7 +275,7 @@ const getAddress = async (userPos) => {
     const longitude = userPos.lng;
     const latitude = userPos.lat;
 
-    const apiKey = '343ca1816ffa4279a4a706469463a590'; // opencagedata.com에서 발급
+    const apiKey = "343ca1816ffa4279a4a706469463a590"; // opencagedata.com에서 발급
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}&language=ko`;
 
     const response = await fetch(url);
@@ -289,13 +291,13 @@ const getAddress = async (userPos) => {
       const components = data.results[0].components;
       
       // 동 이름 찾기 시도 (여러 필드에 있을 수 있음)
-      return components.suburb;
+        return components.quarter || components.suburb;
     }
   } catch (error) {
-    console.error('동 이름 가져오기 실패:', error);
+    console.error("동 이름 가져오기 실패:", error);
     throw error;
   }
-}
+};
 
 // 현재 위치 가져오기
 const getUserLocation = () => {
@@ -308,8 +310,6 @@ const getUserLocation = () => {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-
-        getAddress(userPos).then(res => console.log('현재위치 동이름 : ', res))
         
         // 스토어에 위치 저장
         store.dispatch("map/setUserLocation", userPos);
@@ -397,7 +397,7 @@ const centerToMyLocation = () => {
       addUserLocationMarker(userLocation.value);
 
       // 현재 위치 기반 검색 수행
-      searchNearbyPlaces();
+      // searchNearbyPlaces();
     } catch (error) {
       console.error("지도 중심 이동 실패:", error);
     }
@@ -484,10 +484,13 @@ const searchNearbyPlaces = () => {
   const categoryKeyword = categoryObj ? categoryObj.keyword : "";
 
   // 현재 위치 주변 식당 검색
-  const query = categoryKeyword + " 식당";
-  const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
+  const query = categoryKeyword;
+  const userPos = {
+    lng: userLocation.value.lng,
+    lat: userLocation.value.lat,
+  };
 
-  searchNaverPlaces(query, coords);
+  searchNaverPlaces(query, userPos);
 };
 
 // 매장 추천 표시
@@ -505,12 +508,16 @@ const showRecommendations = () => {
 
   // 현재 위치 주변 추천 맛집 검색
   const query = themeKeyword;
-  const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
-
-  searchNaverPlaces(query, coords);
+  const userPos = {
+    lng: userLocation.value.lng,
+    lat: userLocation.value.lat,
+  };
+  
+  searchNaverPlaces(query, userPos);
 };
 
 // 특정 범위 내 검색
+/**
 const filterByDistance = () => {
   if (!userLocation.value) {
     getUserLocation();
@@ -541,6 +548,7 @@ const filterByDistance = () => {
 
   searchNaverPlaces(query, coords, 1000); // 1000m = 1km
 };
+*/
 
 // 검색창 검색
 const searchPlaces = () => {
@@ -553,63 +561,56 @@ const searchPlaces = () => {
     const categoryObj = foodCategories.find(
       (cat) => cat.value === activeCategory.value
     );
-    searchTerm = categoryObj ? categoryObj.keyword + " 식당" : "식당";
+    searchTerm = categoryObj ? categoryObj.keyword : "";
   }
 
   // 현재 지도 중심 좌표 가져오기
-  let coords = "";
+  const userPos = {
+    lng: "",
+    lat: "",
+  };
+
   if (map && window.naver) {
     const center = map.getCenter();
-    coords = `${center.lng()},${center.lat()}`;
+    userPos.lng = center.lng();
+    userPos.lat = center.lat();
   } else if (userLocation.value) {
-    coords = `${userLocation.value.lng},${userLocation.value.lat}`;
+    userPos = {
+      lng: userLocation.value.lng,
+      lat: userLocation.value.lat,
+    };
   }
 
-  searchNaverPlaces(searchTerm, coords);
+  searchNaverPlaces(searchTerm, userPos);
 };
 
 // 네이버 지역 API로 장소 검색
-const searchNaverPlaces = async (query, coords, radius) => {
+const searchNaverPlaces = async (query, userPos) => {
   isLoading.value = true;
 
   try {
-    // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-    // 프론트엔드에서 직접 호출하면 CORS 및 보안 문제 발생
-    // 여기서는 예시로 프록시 서버를 통해 호출한다고 가정
-
-    // 실제 구현 시에는 백엔드 API를 통해 호출해야 함
-    // const response = await axios.get('/api/search/local', {
-    //   params: {
-    //     query,
-    //     display: 10,
-    //     start: 1,
-    //     sort: 'random',
-    //     coords,
-    //     radius: radius || 5000 // 기본 5km
-    //   }
-    // });
-
-    // 백엔드 API 호출이 불가능하므로 샘플 데이터로 대체
-    const mockResults = generateMockSearchResults(query, coords, 10);
+    const dongName = await getAddress(userPos)
+    
+    const response = await recommendService.nearby(dongName + " " + query)
 
     // 검색 결과 처리
-    searchResults.value = mockResults;
+    searchResults.value = response.items;
 
     // 마커 생성
-    updateMapMarkers(mockResults);
+    updateMapMarkers(response.items);
 
     // 첫 번째 결과로 추천 정보 설정
-    if (mockResults.length > 0) {
-      setRecommendation(mockResults[0]);
+    if (response.items.length > 0) {
+      setRecommendation(response.items[0]);
     } else {
       currentRecommendation.value = null;
     }
 
     // 지도 중심 및 줌 레벨 조정 (모든 마커가 보이도록)
-    if (map && window.naver && mockResults.length > 0) {
+    if (map && window.naver && response.items.length > 0) {
       const bounds = new window.naver.maps.LatLngBounds();
 
-      mockResults.forEach((place) => {
+      response.items.forEach((place) => {
         bounds.extend(
           new window.naver.maps.LatLng(
             place.mapy / 10000000,
@@ -790,7 +791,7 @@ const resetMapAndSearch = () => {
   centerToMyLocation();
 
   // 현재 위치 기반 검색 수행
-  searchNearbyPlaces();
+  // searchNearbyPlaces();
 };
 
 // 네이버 지도 앱/웹으로 열기
