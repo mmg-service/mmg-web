@@ -566,16 +566,6 @@ const searchPlaces = () => {
 
   searchTerm = `${searchTerm} ${locationName.value}`;
 
-  // 현재 지도 중심 좌표 가져오기
-  // let coords = "";
-  // if (map && window.naver) {
-  //   const center = map.getCenter();
-  //   coords = `${center.lng()},${center.lat()}`;
-  // } else if (userLocation.value) {
-  //   coords = `${userLocation.value.lng},${userLocation.value.lat}`;
-  // }
-
-  // searchNaverPlaces(searchTerm, coords);
   searchNaverPlaces(searchTerm);
 };
 
@@ -585,14 +575,10 @@ const searchNaverPlaces = async (query, coords, radius) => {
 
   try {
     // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-
     const response = await recommendationService.recommendNearby({
       query
     });
 
-    console.log("test: ", response)
-    // 백엔드 API 호출이 불가능하므로 샘플 데이터로 대체
-    // const mockResults = generateMockSearchResults(query, coords, 10);
     const mockResults = response.items;
 
     // 검색 결과 처리
@@ -601,9 +587,11 @@ const searchNaverPlaces = async (query, coords, radius) => {
     // 마커 생성
     updateMapMarkers(searchResults.value);
 
+    const aiRecommend = JSON.parse(response.claudeItem);
+
     // 첫 번째 결과로 추천 정보 설정
     if (mockResults.length > 0) {
-      setRecommendation(mockResults[0]);
+      setRecommendation(mockResults[0], aiRecommend.recommendation.reason); // ai recommend
     } else {
       currentRecommendation.value = null;
     }
@@ -700,7 +688,7 @@ const showInfoWindow = (place, marker) => {
 };
 
 // 추천 정보 설정
-const setRecommendation = (place) => {
+const setRecommendation = (place, aiReason) => {
   if (!place) {
     currentRecommendation.value = null;
     return;
@@ -725,6 +713,7 @@ const setRecommendation = (place) => {
   const cleanCategory = place.category.replace(/<[^>]*>/g, "");
   const cleanAddress = place.address.replace(/<[^>]*>/g, "");
 
+
   // 추천 정보 구성
   currentRecommendation.value = {
     id: place.id,
@@ -741,7 +730,7 @@ const setRecommendation = (place) => {
       )}`,
     mapx: place.mapx,
     mapy: place.mapy,
-    aiReason: generateRecommendationReason(place, distance),
+    aiReason: aiReason || generateRecommendationReason(place, distance), // 첫 검색시에만 ai 추천
   };
 };
 
