@@ -80,7 +80,49 @@
       <div class="order-complete-modal" v-if="orderComplete">
         <div class="order-complete-content">
           <h3>주문 완료 하였습니다.</h3>
-          <button @click="orderComplete = false">확인</button>
+          <div class="order-complete-buttons">
+            <button class="confirm-button" @click="orderComplete = false">확인</button>
+            <button class="review-button" @click="openReviewModal">리뷰작성하기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 리뷰 작성 모달 -->
+      <div class="review-modal" v-if="showReviewModal">
+        <div class="review-modal-content">
+          <div class="review-modal-header">
+            <h3>리뷰를 작성해주세요</h3>
+            <button class="close-button" @click="showReviewModal = false">&times;</button>
+          </div>
+          <div class="review-form">
+            <textarea 
+              class="review-textbox" 
+              v-model="reviewText" 
+              placeholder="리뷰를 작성해주세요"
+              rows="5"
+            ></textarea>
+          </div>
+          <div class="review-actions">
+            <button class="save-button" @click="submitReview">저장</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 리뷰 저장 성공 모달 -->
+      <div class="review-success-modal" v-if="showReviewSuccessModal">
+        <div class="review-success-content">
+          <div class="review-success-header">
+            <h3>AI가 완성한 리뷰입니다✨</h3>
+            <button class="close-button" @click="closeReviewSuccessModal">&times;</button>
+          </div>
+          <div class="review-response-data">
+            <div class="response-data-box">
+              <pre>{{ JSON.stringify(responseData, null, 2) }}</pre>
+            </div>
+          </div>
+          <div class="review-success-footer">
+            <button class="confirm-button" @click="closeReviewSuccessModal">확인</button>
+          </div>
         </div>
       </div>
     </div>
@@ -130,7 +172,12 @@
         ],
         cartItems: [],
         showCart: false,
-        orderComplete: false
+        orderComplete: false,
+        showReviewModal: false,
+        showReviewSuccessModal: false,
+        reviewText: '',
+        lastOrderId: null,
+        responseData: null
       };
     },
     computed: {
@@ -178,10 +225,81 @@
       placeOrder() {
         if (this.cartItems.length > 0) {
           // 주문 처리 로직이 필요하면 여기에 추가
+          // 여기서 실제 주문 API를 호출하고 주문 ID를 받아옴
+          this.lastOrderId = Math.floor(Math.random() * 10000); // 임시 주문 ID 생성 (실제로는 API에서 받아옴)
           this.orderComplete = true;
-          // 주문 완료 후 주문내역 비우기
-          this.cartItems = [];
+          // 주문 완료 후 주문내역 비우기는 리뷰 작성 후 또는 확인 버튼 클릭 시 처리
         }
+      },
+      openReviewModal() {
+        this.orderComplete = false;
+        this.showReviewModal = true;
+      },
+      submitReview() {
+        if (!this.reviewText.trim()) {
+          alert('리뷰 내용을 입력해주세요.');
+          return;
+        }
+        
+        // API 호출을 위한 리뷰 데이터
+        const reviewData = {
+          orderId: this.lastOrderId,
+          content: this.reviewText,
+          rating: 5 // 기본 별점 (필요시 별점 기능 추가 가능)
+        };
+        
+        // API 호출 함수
+        this.sendReviewToServer(reviewData);
+      },
+      sendReviewToServer(reviewData) {
+        // 실제 API 호출 코드
+        console.log('리뷰 데이터 전송:', reviewData);
+        
+        // 예시: axios를 사용한 호출
+        /*
+        import axios from 'axios';
+        
+        axios.post('https://your-api-endpoint.com/reviews', reviewData)
+          .then(response => {
+            console.log('리뷰가 성공적으로 저장되었습니다:', response.data);
+            this.responseData = response.data;
+            this.showReviewModal = false;
+            this.showReviewSuccessModal = true;
+            this.reviewText = '';
+            this.cartItems = []; // 리뷰 작성 후 장바구니 비우기
+          })
+          .catch(error => {
+            console.error('리뷰 저장 중 오류 발생:', error);
+            alert('리뷰 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+          });
+        */
+        
+        // API가 아직 구현되지 않았으므로 임시 데이터로 성공 처리
+        setTimeout(() => {
+          // 임시 응답 데이터
+          const mockResponse = {
+            success: true,
+            reviewId: Math.floor(Math.random() * 1000),
+            message: "리뷰가 성공적으로 등록되었습니다.",
+            data: {
+              orderId: reviewData.orderId,
+              content: reviewData.content,
+              rating: reviewData.rating,
+              createdAt: new Date().toISOString(),
+              status: "approved"
+            }
+          };
+          
+          this.responseData = mockResponse;
+          this.showReviewModal = false;
+          this.showReviewSuccessModal = true;
+          this.reviewText = '';
+          this.cartItems = []; // 리뷰 작성 후 장바구니 비우기
+        }, 500);
+      },
+      closeReviewSuccessModal() {
+        this.showReviewSuccessModal = false;
+        this.responseData = null;
       }
     }
   };
@@ -381,7 +499,7 @@
   }
   
   /* 모달 스타일 */
-  .cart-modal, .order-complete-modal {
+  .cart-modal, .order-complete-modal, .review-modal, .review-success-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -394,7 +512,7 @@
     z-index: 1000;
   }
   
-  .cart-modal-content, .order-complete-content {
+  .cart-modal-content, .order-complete-content, .review-modal-content, .review-success-content {
     background-color: #fff;
     width: 90%;
     max-width: 500px;
@@ -405,7 +523,7 @@
     flex-direction: column;
   }
   
-  .cart-modal-header {
+  .cart-modal-header, .review-modal-header, .review-success-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -413,7 +531,7 @@
     border-bottom: 1px solid #eee;
   }
   
-  .cart-modal-header h3 {
+  .cart-modal-header h3, .review-modal-header h3, .review-success-header h3 {
     margin: 0;
   }
   
@@ -480,13 +598,89 @@
     margin: 0 0 1.5rem;
   }
   
-  .order-complete-content button {
-    background-color: #00c2b3;
-    color: white;
-    border: none;
-    padding: 0.8rem 2rem;
+  .order-complete-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .confirm-button, .review-button {
+    padding: 0.8rem 1.5rem;
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
+    border: none;
+  }
+  
+  .confirm-button {
+    background-color: #00c2b3;
+    color: white;
+  }
+  
+  .review-button {
+    background-color: #ff9800;
+    color: white;
+  }
+  
+  /* 리뷰 모달 스타일 */
+  .review-form {
+    padding: 1rem;
+  }
+  
+  .review-textbox {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  
+  .review-actions {
+    padding: 1rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .save-button {
+    background-color: #00c2b3;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  /* 리뷰 성공 모달 스타일 */
+  .review-response-data {
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .review-response-data h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .response-data-box {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    padding: 1rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .review-success-footer {
+    padding: 1rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
   }
   </style>
