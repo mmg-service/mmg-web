@@ -593,7 +593,14 @@ const addUserLocationMarker = (position) => {
       position: new window.naver.maps.LatLng(position.lat, position.lng),
       map: map,
       icon: {
-        content: `<div class="user-location-marker"><i class="fas fa-circle-user"></i></div>`,
+        content: `<div style="
+                    width: 20px;
+                    height: 20px;
+                    background-color: #1e90ff;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 0 6px rgba(30, 144, 255, 0.8);
+                  "></div>`,
         anchor: new window.naver.maps.Point(15, 15),
       },
       zIndex: 100,
@@ -611,10 +618,10 @@ const clearAllMarkers = () => {
   markers = [];
 
   // 사용자 위치 마커는 별도 관리
-  if (userMarker) {
-    userMarker.setMap(null);
-    userMarker = null;
-  }
+  // if (userMarker) {
+  //   userMarker.setMap(null);
+  //   userMarker = null;
+  // }
 };
 
 // 지도 에러 메시지 표시
