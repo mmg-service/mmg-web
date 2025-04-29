@@ -147,7 +147,6 @@
     <!-- 지도 컨테이너 -->
     <div class="map-container">
       <div id="map" ref="mapElement"></div>
-
     </div>
 
     <!-- 하단 추천 영역 -->
@@ -157,11 +156,11 @@
       :openNaverMap="openNaverMap"
     />
 
-    <div class="bottom-actions">
+    <!-- <div class="bottom-actions">
       <button class="action-btn" @click="centerToMyLocation">
         <i class="fas fa-location-arrow"></i>
       </button>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -170,7 +169,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import recommendationService from "@/services/recommendation.service";
-
 import Recommendation from "@/components/Recommendation.vue";
 
 const store = useStore();
@@ -186,8 +184,8 @@ let mapMoveTimer = null;
 
 // 검색 및 필터 관련 상태
 const searchKeyword = ref("");
-const activeCategory = ref("korean"); // 한식을 기본값으로 설정
-const activeTheme = ref("popular"); // 인기있는을 기본값으로 설정
+const activeCategory = ref(null);
+// const activeTheme = ref("popular"); // 인기있는을 기본값으로 설정
 const isLoading = ref(false);
 const currentRecommendation = ref(null);
 const searchResults = ref([]);
@@ -205,10 +203,10 @@ const activeSituation = ref(null);
 
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
-  { label: "한식", value: "korean", keyword: "한식" },
-  { label: "일식", value: "japanese", keyword: "일식" },
-  { label: "중식", value: "chinese", keyword: "중식" },
-  { label: "양식", value: "western", keyword: "양식" },
+  { label: "한식", value: "korean", keyword: "한" },
+  { label: "일식", value: "japanese", keyword: "일" },
+  { label: "중식", value: "chinese", keyword: "중" },
+  { label: "양식", value: "western", keyword: "양" },
 ];
 
 // 새로 추가된 카테고리 옵션들
@@ -269,11 +267,11 @@ const situationOptions = [
 ];
 
 // 테마 옵션 목록 - 네이버 지역 API 검색용 키워드 매핑
-const themeOptions = [
-  { label: "가볍게", value: "light", keyword: "가벼운" },
-  { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
-  { label: "인기있는", value: "popular", keyword: "인기있는" },
-];
+// const themeOptions = [
+//   { label: "가볍게", value: "light", keyword: "가벼운" },
+//   { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
+//   { label: "인기있는", value: "popular", keyword: "인기있는" },
+// ];
 
 // 스토어에서 가져오는 값들
 const userLocation = computed(() => store.getters["map/userLocation"]);
@@ -281,37 +279,37 @@ const userLocation = computed(() => store.getters["map/userLocation"]);
 // 새로 추가된 필터 설정 함수들
 const setGenderAndSearch = (gender) => {
   activeGender.value = gender;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setAgeAndSearch = (age) => {
   activeAge.value = age;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setJobAndSearch = (job) => {
   activeJob.value = job;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setPurposeAndSearch = (purpose) => {
   activePurpose.value = purpose;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setPeopleCountAndSearch = (count) => {
   activePeopleNum.value = count;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setMoodAndSearch = (mood) => {
   activeMood.value = mood;
-  searchPlaces();
+  // searchPlaces();
 };
 
 const setSituationAndSearch = (situation) => {
   activeSituation.value = situation;
-  searchPlaces();
+  // searchPlaces();
 };
 
 onMounted(() => {
@@ -637,7 +635,7 @@ const showMapErrorMessage = () => {
 // 카테고리 설정 및 검색
 const setCategoryAndSearch = (category) => {
   activeCategory.value = category;
-  searchPlaces();
+  // searchPlaces();
 };
 
 // 테마 설정 및 검색
@@ -657,56 +655,56 @@ const searchNearbyPlaces = () => {
 };
 
 // 매장 추천 표시
-const showRecommendations = () => {
-  if (!userLocation.value) {
-    getUserLocation();
-    return;
-  }
+// const showRecommendations = () => {
+//   if (!userLocation.value) {
+//     getUserLocation();
+//     return;
+//   }
 
   // 테마 키워드 가져오기
-  const themeObj = themeOptions.find(
-    (theme) => theme.value === activeTheme.value
-  );
-  const themeKeyword = themeObj ? themeObj.keyword : "";
+  // const themeObj = themeOptions.find(
+  //   (theme) => theme.value === activeTheme.value
+  // );
+  // const themeKeyword = themeObj ? themeObj.keyword : "";
 
   // 현재 위치 주변 추천 맛집 검색
-  const query = themeKeyword;
-  const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
+  // const query = themeKeyword;
+  // const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
 
   // searchNaverPlaces(query, coords);
-};
+// };
 
 // 특정 범위 내 검색
-const filterByDistance = () => {
-  if (!userLocation.value) {
-    getUserLocation();
-    return;
-  }
+// const filterByDistance = () => {
+//   if (!userLocation.value) {
+//     getUserLocation();
+//     return;
+//   }
 
   // 카테고리 키워드 가져오기
-  const categoryObj = foodCategories.find(
-    (cat) => cat.value === activeCategory.value
-  );
-  const categoryKeyword = categoryObj ? categoryObj.keyword : "";
+  // const categoryObj = foodCategories.find(
+  //   (cat) => cat.value === activeCategory.value
+  // );
+  // const categoryKeyword = categoryObj ? categoryObj.keyword : "";
 
   // 현재 위치 주변 1km 내 식당 검색
-  const query = categoryKeyword;
-  const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
+  // const query = categoryKeyword;
+  // const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
 
   // 지도에 1km 반경 표시
-  if (map && window.naver) {
-    const userPos = new window.naver.maps.LatLng(
-      userLocation.value.lat,
-      userLocation.value.lng
-    );
-    map.setCenter(userPos);
+  // if (map && window.naver) {
+  //   const userPos = new window.naver.maps.LatLng(
+  //     userLocation.value.lat,
+  //     userLocation.value.lng
+  //   );
+  //   map.setCenter(userPos);
 
     // 적절한 줌 레벨 설정 (대략 1km 반경이 보이게)
-    map.setZoom(14);
-  }
+  //   map.setZoom(14);
+  // }
 
   // searchNaverPlaces(query, coords, 1000); // 1000m = 1km
-};
+// };
 
 // 검색창 검색
 const searchPlaces = () => {
@@ -725,14 +723,13 @@ const searchNaverPlaces = async () => {
   );
   const categoryKeyword = categoryObj ? categoryObj.keyword : "";
 
-  const query = `${locationName.value} ${categoryKeyword} ${searchKeyword.value}`;
+  // const query = `${locationName.value} ${categoryKeyword} ${searchKeyword.value}`;
 
   try {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-
 
         const requestPayload = {
           latitude: lat,
@@ -750,11 +747,11 @@ const searchNaverPlaces = async () => {
           onSale: activeSituation.value === 'sale' ? true : null,
           franchise: activeSituation.value === 'franchise' ? true : null,
         };
-        console.log("request Payload:", requestPayload);
+        // console.log("request Payload:", requestPayload);
 
         const response = await recommendationService.recommendNearby(requestPayload);
 
-        console.log("api response:", response);
+        // console.log("api response:", response);
 
         const mockResults = response.items;
 
@@ -765,12 +762,25 @@ const searchNaverPlaces = async () => {
         updateMapMarkers(searchResults.value);
 
         let aiRecommend = "" 
-        console.log("AI 추천:", aiRecommend.recommendation);
+        // console.log("AI 추천:", aiRecommend.recommendation);
 
         // 첫 번째 결과로 추천 정보 설정
         if (mockResults.length > 0) {
           aiRecommend = JSON.parse(response.claudeItem);
           setRecommendation(mockResults[0], aiRecommend.recommendation);
+
+          let index = 0;
+          for(let i = 0; i < mockResults.length; i++) {
+            if(mockResults[i].title === aiRecommend.recommendation.title) {
+              index = i;
+              break;
+            }
+          }
+          
+          showInfoWindow(
+            mockResults[index],
+            markers[index]
+          );
         } else {
           currentRecommendation.value = null;
         }
