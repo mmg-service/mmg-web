@@ -765,11 +765,12 @@ const searchNaverPlaces = async () => {
         // 마커 생성
         updateMapMarkers(searchResults.value);
 
-        const aiRecommend = JSON.parse(response.claudeItem);
+        let aiRecommend = "" 
         console.log("AI 추천:", aiRecommend.recommendation);
 
         // 첫 번째 결과로 추천 정보 설정
         if (mockResults.length > 0) {
+          aiRecommend = JSON.parse(response.claudeItem);
           setRecommendation(mockResults[0], aiRecommend.recommendation);
         } else {
           currentRecommendation.value = null;
