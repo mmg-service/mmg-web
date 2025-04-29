@@ -738,8 +738,7 @@ const searchNaverPlaces = async () => {
           latitude: lat,
           longitude: lng,
           keyword: searchKeyword.value,
-          query: query,
-
+          // query: query,
           // 추가: 필터 조건들
           category: categoryKeyword,
           sex: activeGender.value || null,
