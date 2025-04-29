@@ -80,7 +80,50 @@
       <div class="order-complete-modal" v-if="orderComplete">
         <div class="order-complete-content">
           <h3>주문 완료 하였습니다.</h3>
-          <button @click="orderComplete = false">확인</button>
+          <div class="button-group">
+            <!-- <button @click="orderComplete = false">확인</button> -->
+            <button @click="orderComplete = false" class="btn btn-primary confirm-button">확인</button>
+            <!-- 주문 완료 모달 내의 리뷰하기 버튼 이벤트 변경 -->
+            <button class="btn btn-secondary review-button" @click="openReviewModal">리뷰하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 리뷰 모달 -->
+    <div class="review-modal" v-if="showReviewModal">
+      <div class="review-modal-content">
+        <div class="review-modal-header">
+          <h3>리뷰 작성</h3>
+          <button class="close-button" @click="showReviewModal = false">&times;</button>
+        </div>
+        <div class="review-form">
+          <div class="rating-container">
+            <div class="star-rating">
+              <p>평점:</p>
+              <span 
+                v-for="i in 5" 
+                :key="i" 
+                @click="setRating(i)" 
+                :class="{ 'active': i <= rating }"
+                class="star"
+              >
+                ★
+              </span>
+            </div>
+          </div>
+          <textarea 
+            v-model="reviewText" 
+            placeholder="리뷰를 작성해주세요..." 
+            class="review-textarea"
+          ></textarea>
+          <button 
+            class="submit-review-button" 
+            @click="submitReview" 
+            :disabled="!reviewText.trim() || rating === 0"
+          >
+            리뷰 제출
+          </button>
         </div>
       </div>
     </div>
@@ -130,7 +173,10 @@
         ],
         cartItems: [],
         showCart: false,
-        orderComplete: false
+        orderComplete: false,
+        showReviewModal: false,
+        reviewText: '',
+        rating: 0
       };
     },
     computed: {
@@ -147,6 +193,20 @@
       },
       formatPrice(price) {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      },
+      openReviewModal() {
+        this.showReviewModal = true;
+        this.orderComplete = false;
+      },
+      submitReview() {
+        // 여기에 리뷰 제출 로직 추가
+        alert('리뷰가 성공적으로 제출되었습니다.');
+        this.showReviewModal = false;
+        this.reviewText = '';
+        this.rating = 0;
+      },
+      setRating(value) {
+        this.rating = value;
       },
       addToCart(menu) {
         const existingItem = this.cartItems.find(item => item.id === menu.id);
@@ -488,5 +548,111 @@
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
+  }
+
+
+
+  .confirm-button {
+    /* 확인 버튼과 리뷰 버튼 간격 조정 */
+    margin-right: 0.5rem;
+  }
+  .review-button {
+    margin-left: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+  }
+  .review-button:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+
+  /* 기존 스타일 아래에 추가 */
+  .review-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .review-modal-content {
+    background-color: #fff;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .review-modal-header h3 {
+    margin: 0;
+  }
+
+  .review-form {
+    padding: 1rem;
+  }
+
+  .rating-container {
+    margin-bottom: 1rem;
+  }
+
+  .star-rating {
+    display: flex;
+    font-size: 1.5rem;
+  }
+
+  .star {
+    color: #ddd;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+
+  .star.active {
+    color: #ffb700;
+  }
+
+  .review-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  .submit-review-button {
+    background-color: #00c2b3;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .submit-review-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
   }
   </style>
