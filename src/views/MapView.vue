@@ -726,12 +726,11 @@ const setRecommendation = (place, aiRecommend = null) => {
     distance,
     address: aiRecommend?.address || cleanAddress,
     phone: aiRecommend?.telephone || place.telephone || "",
-    // 이미지
-    image:
-      place.image ||
-      `https://via.placeholder.com/80?text=${encodeURIComponent(
-        (aiRecommend?.title || cleanTitle).substring(0, 5)
-      )}`,
+    // image:     // 이미지
+    //   place.image ||
+    //   `https://via.placeholder.com/80?text=${encodeURIComponent(
+    //     (aiRecommend?.title || cleanTitle).substring(0, 5)
+    //   )}`,
     mapx: place.mapx, // claudeItem에 추가필요
     mapy: place.mapy,
     aiReason:
