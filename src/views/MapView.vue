@@ -14,6 +14,12 @@
         </button>
       </div>
 
+      <div class="filter-toggle" @click="toggleFilters">
+        <span>필터 {{ showFilters ? '접기' : '펼치기' }}</span>
+        <i :class="['fas', showFilters ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+      </div>
+
+      <div class="filter-categories" v-show="showFilters">
       <!-- 카테고리 및 옵션 선택 UI -->
       <div class="filter-categories">
         <div class="category-section">
@@ -33,6 +39,107 @@
           </div>
         </div>
 
+        <!-- 사용자 카테고리 -->
+        <div class="category-section">
+          <div class="category-title">성별</div>
+          <div class="categories-row">
+            <button
+              v-for="gender in genderOptions"
+              :key="gender.value"
+              :class="['category-btn', { active: activeGender === gender.value }]"
+              @click="setGenderAndSearch(gender.value)"
+            >
+              {{ gender.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="category-section">
+          <div class="category-title">나이</div>
+          <div class="categories-row">
+            <button
+              v-for="age in ageOptions"
+              :key="age.value"
+              :class="['category-btn', { active: activeAge === age.value }]"
+              @click="setAgeAndSearch(age.value)"
+            >
+              {{ age.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="category-section">
+          <div class="category-title">직업군</div>
+          <div class="categories-row">
+            <button
+              v-for="job in jobOptions"
+              :key="job.value"
+              :class="['category-btn', { active: activeJob === job.value }]"
+              @click="setJobAndSearch(job.value)"
+            >
+              {{ job.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 비즈니스 카테고리 -->
+        <div class="category-section">
+          <div class="category-title">목적</div>
+          <div class="categories-row">
+            <button
+              v-for="purpose in purposeOptions"
+              :key="purpose.value"
+              :class="['category-btn', { active: activePurpose === purpose.value }]"
+              @click="setPurposeAndSearch(purpose.value)"
+            >
+              {{ purpose.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="category-section">
+          <div class="category-title">인원</div>
+          <div class="categories-row">
+            <button
+              v-for="count in peopleCountOptions"
+              :key="count.value"
+              :class="['category-btn', { active: activePeopleCount === count.value }]"
+              @click="setPeopleCountAndSearch(count.value)"
+            >
+              {{ count.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="category-section">
+          <div class="category-title">분위기</div>
+          <div class="categories-row">
+            <button
+              v-for="mood in moodOptions"
+              :key="mood.value"
+              :class="['category-btn', { active: activeMood === mood.value }]"
+              @click="setMoodAndSearch(mood.value)"
+            >
+              {{ mood.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 상황별 카테고리 -->
+        <div class="category-section">
+          <div class="category-title">상황별</div>
+          <div class="categories-row">
+            <button
+              v-for="situation in situationOptions"
+              :key="situation.value"
+              :class="['category-btn', { active: activeSituation === situation.value }]"
+              @click="setSituationAndSearch(situation.value)"
+            >
+              {{ situation.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- <div class="category-section">
           <div class="category-title">분위기</div>
           <div class="categories-row">
@@ -47,6 +154,7 @@
           </div>
         </div> -->
       </div>
+    </div>
     </div>
 
     <!-- 지도 컨테이너 -->
@@ -120,12 +228,79 @@ const userRadius = ref(1); // 1km
 
 const locationName = ref("");
 
+// 새로 추가된 필터 상태
+const activeGender = ref(null);
+const activeAge = ref(null);
+const activeJob = ref(null);
+const activePurpose = ref(null);
+const activePeopleCount = ref(null);
+const activeMood = ref(null);
+const activeSituation = ref(null);
+
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
   { label: "한식", value: "korean", keyword: "한식" },
   { label: "일식", value: "japanese", keyword: "일식" },
   { label: "중식", value: "chinese", keyword: "중식" },
   { label: "양식", value: "western", keyword: "양식" },
+];
+
+// 새로 추가된 카테고리 옵션들
+const genderOptions = [
+  { label: "남", value: "male" },
+  { label: "여", value: "female" },
+];
+
+const ageOptions = [
+  { label: "10대", value: "10s" },
+  { label: "20대", value: "20s" },
+  { label: "30대", value: "30s" },
+  { label: "40대", value: "40s" },
+  { label: "50대", value: "50s" },
+  { label: "60대 이상", value: "60s" },
+];
+
+const jobOptions = [
+  { label: "경영/관리직", value: "management" },
+  { label: "의료/보건", value: "healthcare" },
+  { label: "IT/기술", value: "it" },
+  { label: "교육", value: "education" },
+  { label: "금융/회계", value: "finance" },
+];
+
+const purposeOptions = [
+  { label: "회식", value: "company_dinner" },
+  { label: "미팅", value: "meeting" },
+  { label: "가족모임", value: "family" },
+  { label: "일상식사", value: "daily" },
+  { label: "영업", value: "sales" },
+];
+
+const peopleCountOptions = [
+  { label: "1인", value: "1" },
+  { label: "2인", value: "2" },
+  { label: "3-4인", value: "3-4" },
+  { label: "5-8인", value: "5-8" },
+  { label: "9인 이상", value: "9+" },
+];
+
+const moodOptions = [
+  { label: "편안함", value: "comfortable" },
+  { label: "모던함", value: "modern" },
+  { label: "캐주얼함", value: "casual" },
+  { label: "고급", value: "luxury" },
+  { label: "노포", value: "old" },
+  { label: "활기찬", value: "lively" },
+  { label: "가벼운", value: "light" },
+  { label: "조용한", value: "quiet" },
+  { label: "신나는", value: "exciting" },
+  { label: "편안한", value: "cozy" },
+];
+
+const situationOptions = [
+  { label: "제철음식", value: "seasonal" },
+  { label: "세일중", value: "sale" },
+  { label: "프랜차이즈", value: "franchise" },
 ];
 
 // 테마 옵션 목록 - 네이버 지역 API 검색용 키워드 매핑
@@ -143,6 +318,42 @@ const userLocation = computed(() => store.getters["map/userLocation"]);
 const naverApiConfig = {
   clientId: "q58itu6nad", // 실제 발급 받은 Client ID로 대체
   clientSecret: "kWv3UGJ0y6l6m2eh9ZpV7zkwZxKteflKCQ1GdKzw", // 실제 발급 받은 Client Secret으로 대체
+};
+
+// 새로 추가된 필터 설정 함수들
+const setGenderAndSearch = (gender) => {
+  activeGender.value = gender;
+  searchPlaces();
+};
+
+const setAgeAndSearch = (age) => {
+  activeAge.value = age;
+  searchPlaces();
+};
+
+const setJobAndSearch = (job) => {
+  activeJob.value = job;
+  searchPlaces();
+};
+
+const setPurposeAndSearch = (purpose) => {
+  activePurpose.value = purpose;
+  searchPlaces();
+};
+
+const setPeopleCountAndSearch = (count) => {
+  activePeopleCount.value = count;
+  searchPlaces();
+};
+
+const setMoodAndSearch = (mood) => {
+  activeMood.value = mood;
+  searchPlaces();
+};
+
+const setSituationAndSearch = (situation) => {
+  activeSituation.value = situation;
+  searchPlaces();
 };
 
 onMounted(() => {
@@ -792,6 +1003,14 @@ const openNaverMap = (place) => {
 const goToMyPage = () => {
   router.push({ name: "MyPage" });
 };
+
+// 필터 토글 상태
+const showFilters = ref(false);
+
+// 필터 토글 함수
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value;
+};
 </script>
 
 <style scoped>
@@ -1119,5 +1338,15 @@ const goToMyPage = () => {
   font-size: 14px;
   color: #666;
   margin: 5px 0;
+}
+
+/* 검색 및 필터 영역 수정 */
+.search-bar {
+  padding: 10px 15px;
+  background-color: white;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-height: 200px; /* 최대 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 추가 */
 }
 </style>
