@@ -103,7 +103,7 @@
             <button
               v-for="count in peopleCountOptions"
               :key="count.value"
-              :class="['category-btn', { active: activePeopleCount === count.value }]"
+              :class="['category-btn', { active: activePeopleNum === count.value }]"
               @click="setPeopleCountAndSearch(count.value)"
             >
               {{ count.label }}
@@ -140,19 +140,6 @@
           </div>
         </div>
 
-        <!-- <div class="category-section">
-          <div class="category-title">분위기</div>
-          <div class="categories-row">
-            <button
-              v-for="theme in themeOptions"
-              :key="theme.value"
-              :class="['category-btn', { active: activeTheme === theme.value }]"
-              @click="setThemeAndSearch(theme.value)"
-            >
-              {{ theme.label }}
-            </button>
-          </div>
-        </div> -->
       </div>
     </div>
     </div>
@@ -161,21 +148,6 @@
     <div class="map-container">
       <div id="map" ref="mapElement"></div>
 
-      <!-- <div class="map-controls">
-        <button class="map-btn location-btn" @click="centerToMyLocation">
-          <i class="fas fa-location-arrow"></i>
-        </button>
-        <button class="map-btn reset-btn" @click="resetMapAndSearch">
-          <i class="fas fa-redo-alt"></i> <span class="btn-text">전체</span>
-        </button>
-        <button class="map-btn distance-btn" @click="filterByDistance">
-          <i class="fas fa-street-view"></i>
-          <span class="btn-text">반경 1km</span>
-        </button>
-        <button class="map-btn recommend-btn" @click="showRecommendations">
-          <i class="fas fa-utensils"></i> <span class="btn-text">매장추천</span>
-        </button>
-      </div> -->
     </div>
 
     <!-- 하단 추천 영역 -->
@@ -189,10 +161,6 @@
       <button class="action-btn" @click="centerToMyLocation">
         <i class="fas fa-location-arrow"></i>
       </button>
-      <!-- <div class="recommendation">
-        맛집 {{ searchResults.length }}개를 확인하려면?
-      </div>
-      <div class="page-indicator" @click="goToMyPage">내정보</div> -->
     </div>
   </div>
 </template>
@@ -201,7 +169,6 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import axios from "axios";
 import recommendationService from "@/services/recommendation.service";
 
 import Recommendation from "@/components/Recommendation.vue";
@@ -224,7 +191,6 @@ const activeTheme = ref("popular"); // 인기있는을 기본값으로 설정
 const isLoading = ref(false);
 const currentRecommendation = ref(null);
 const searchResults = ref([]);
-const userRadius = ref(1); // 1km
 
 const locationName = ref("");
 
@@ -233,7 +199,7 @@ const activeGender = ref(null);
 const activeAge = ref(null);
 const activeJob = ref(null);
 const activePurpose = ref(null);
-const activePeopleCount = ref(null);
+const activePeopleNum = ref(null);
 const activeMood = ref(null);
 const activeSituation = ref(null);
 
@@ -252,12 +218,12 @@ const genderOptions = [
 ];
 
 const ageOptions = [
-  { label: "10대", value: "10s" },
-  { label: "20대", value: "20s" },
-  { label: "30대", value: "30s" },
-  { label: "40대", value: "40s" },
-  { label: "50대", value: "50s" },
-  { label: "60대 이상", value: "60s" },
+  { label: "10대", value: "10" },
+  { label: "20대", value: "20" },
+  { label: "30대", value: "30" },
+  { label: "40대", value: "40" },
+  { label: "50대", value: "50" },
+  { label: "60대 이상", value: "60" },
 ];
 
 const jobOptions = [
@@ -279,9 +245,9 @@ const purposeOptions = [
 const peopleCountOptions = [
   { label: "1인", value: "1" },
   { label: "2인", value: "2" },
-  { label: "3-4인", value: "3-4" },
-  { label: "5-8인", value: "5-8" },
-  { label: "9인 이상", value: "9+" },
+  { label: "3인", value: "3" },
+  { label: "4인", value: "4" },
+  { label: "5인 이상", value: "7" },
 ];
 
 const moodOptions = [
@@ -298,7 +264,6 @@ const moodOptions = [
 ];
 
 const situationOptions = [
-  { label: "제철음식", value: "seasonal" },
   { label: "세일중", value: "sale" },
   { label: "프랜차이즈", value: "franchise" },
 ];
@@ -307,18 +272,11 @@ const situationOptions = [
 const themeOptions = [
   { label: "가볍게", value: "light", keyword: "가벼운" },
   { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
-  // { label: "나만의", value: "personal", keyword: "맛집" },
   { label: "인기있는", value: "popular", keyword: "인기있는" },
 ];
 
 // 스토어에서 가져오는 값들
 const userLocation = computed(() => store.getters["map/userLocation"]);
-
-// 네이버 지역 API 호출을 위한 설정
-const naverApiConfig = {
-  clientId: "q58itu6nad", // 실제 발급 받은 Client ID로 대체
-  clientSecret: "kWv3UGJ0y6l6m2eh9ZpV7zkwZxKteflKCQ1GdKzw", // 실제 발급 받은 Client Secret으로 대체
-};
 
 // 새로 추가된 필터 설정 함수들
 const setGenderAndSearch = (gender) => {
@@ -342,7 +300,7 @@ const setPurposeAndSearch = (purpose) => {
 };
 
 const setPeopleCountAndSearch = (count) => {
-  activePeopleCount.value = count;
+  activePeopleNum.value = count;
   searchPlaces();
 };
 
@@ -775,18 +733,29 @@ const searchNaverPlaces = async () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        console.log("위도:", lat);
-        console.log("경도:", lng);
 
-        const response = await recommendationService.recommendNearby({
+        const requestPayload = {
           latitude: lat,
           longitude: lng,
-          category: categoryKeyword,
           keyword: searchKeyword.value,
           query: query,
-        });
 
-        console.log("추천 결과:", response);
+          // 추가: 필터 조건들
+          category: categoryKeyword,
+          sex: activeGender.value || null,
+          age: activeAge.value || null,
+          job: activeJob.value || null,
+          purpose: activePurpose.value || null,
+          peopleNum: activePeopleNum.value || null,
+          atmosphere: activeMood.value || null,
+          onSale: activeSituation.value === 'sale' ? true : null,
+          franchise: activeSituation.value === 'franchise' ? true : null,
+        };
+        console.log("request Payload:", requestPayload);
+
+        const response = await recommendationService.recommendNearby(requestPayload);
+
+        console.log("api response:", response);
 
         const mockResults = response.items;
 
@@ -991,9 +960,6 @@ const toRad = (value) => {
 const resetMapAndSearch = () => {
   searchKeyword.value = "";
 
-  // 기본 카테고리로 리셋
-  // activeCategory.value = "korean";
-  // activeTheme.value = "popular";
 
   // 현재 위치 기준으로 지도 초기화
   centerToMyLocation();
