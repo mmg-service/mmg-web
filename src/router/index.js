@@ -52,7 +52,8 @@ const routes = [
   {
     path: '/order',
     name: 'MenuOrder',
-    component: MenuOrderView
+    component: MenuOrderView,
+    meta: { reload: true }
   }
 ]
 
@@ -60,6 +61,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
 
 // 인증이 필요한 라우트를 위한 네비게이션 가드
 router.beforeEach((to, from, next) => {
@@ -73,5 +75,17 @@ router.beforeEach((to, from, next) => {
 
   next()
 })
+
+router.afterEach((to, from) => {
+  // 1) /order에 진입했고, 아직 리로드되지 않았다면
+  if (to.meta.reload && !sessionStorage.getItem('reloaded-order')) {
+    sessionStorage.setItem('reloaded-order', 'true');
+    window.location.reload();
+  }
+  // 2) /order에서 다른 페이지로 나갈 때 플래그 초기화
+  if (from.meta.reload) {
+    sessionStorage.removeItem('reloaded-order');
+  }
+});
 
 export default router
