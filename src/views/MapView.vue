@@ -559,46 +559,62 @@ const searchNaverPlaces = async () => {
   const query = `${locationName.value} ${categoryKeyword} ${searchKeyword.value}`;
 
   try {
-    // 네이버 지역 검색 API 호출 (서버 측에서 호출해야 함)
-    const response = await recommendationService.recommendNearby({
-      query,
-    });
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-    const mockResults = response.items;
+        console.log("위도:", lat);
+        console.log("경도:", lng);
 
-    // 검색 결과 처리
-    searchResults.value = mockResults;
+        const response = await recommendationService.recommendNearby({
+          latitude: lat,
+          longitude: lng,
+          category: categoryKeyword,
+          keyword: searchKeyword.value,
+          query: query,
+        });
 
-    // 마커 생성
-    updateMapMarkers(searchResults.value);
+        console.log("추천 결과:", response);
 
-    const aiRecommend = JSON.parse(response.claudeItem);
+        const mockResults = response.items;
 
-    console.log(aiRecommend.recommendation);
+        // 검색 결과 처리
+        searchResults.value = mockResults;
 
-    // 첫 번째 결과로 추천 정보 설정
-    if (mockResults.length > 0) {
-      // setRecommendation(mockResults[0], aiRecommend.recommendation.reason); // ai recommend
-      setRecommendation(mockResults[0], aiRecommend.recommendation);
-    } else {
-      currentRecommendation.value = null;
-    }
+        // 마커 생성
+        updateMapMarkers(searchResults.value);
 
-    // 지도 중심 및 줌 레벨 조정 (모든 마커가 보이도록)
-    if (map && window.naver && mockResults.length > 0) {
-      const bounds = new window.naver.maps.LatLngBounds();
+        const aiRecommend = JSON.parse(response.claudeItem);
+        console.log("AI 추천:", aiRecommend.recommendation);
 
-      mockResults.forEach((place) => {
-        bounds.extend(
-          new window.naver.maps.LatLng(
-            place.mapy / 10000000,
-            place.mapx / 10000000
-          )
-        );
-      });
+        // 첫 번째 결과로 추천 정보 설정
+        if (mockResults.length > 0) {
+          setRecommendation(mockResults[0], aiRecommend.recommendation);
+        } else {
+          currentRecommendation.value = null;
+        }
 
-      map.fitBounds(bounds);
-    }
+        // 지도 중심 및 줌 레벨 조정 (모든 마커가 보이도록)
+        if (map && window.naver && mockResults.length > 0) {
+          const bounds = new window.naver.maps.LatLngBounds();
+
+          mockResults.forEach((place) => {
+            bounds.extend(
+              new window.naver.maps.LatLng(
+                place.mapy / 10000000,
+                place.mapx / 10000000
+              )
+            );
+          });
+
+          map.fitBounds(bounds);
+        }
+      },
+      (error) => {
+        console.error("위치 정보 가져오기 실패:", error);
+      }
+    );
   } catch (error) {
     console.error("장소 검색 실패:", error);
     searchResults.value = [];
@@ -710,7 +726,8 @@ const setRecommendation = (place, aiRecommend = null) => {
     distance,
     address: aiRecommend?.address || cleanAddress,
     phone: aiRecommend?.telephone || place.telephone || "",
-    image:     // 이미지
+    // 이미지
+    image:
       place.image ||
       `https://via.placeholder.com/80?text=${encodeURIComponent(
         (aiRecommend?.title || cleanTitle).substring(0, 5)
