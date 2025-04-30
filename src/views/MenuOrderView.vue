@@ -118,7 +118,7 @@
           ></textarea>
         </div>
         <div class="review-actions">
-          <button class="save-button" @click="submitReview">저장</button>
+          <button class="save-button" @click="submitReview">완료</button>
         </div>
       </div>
     </div>
