@@ -203,10 +203,10 @@ const activeSituation = ref(null);
 
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
-  { label: "한식", value: "korean", keyword: "한" },
-  { label: "일식", value: "japanese", keyword: "일" },
-  { label: "중식", value: "chinese", keyword: "중" },
-  { label: "양식", value: "western", keyword: "양" },
+  { label: "한식", value: "korean", keyword: "한식" },
+  { label: "일식", value: "japanese", keyword: "일식" },
+  { label: "중식", value: "chinese", keyword: "중식" },
+  { label: "양식", value: "western", keyword: "양식" },
 ];
 
 // 새로 추가된 카테고리 옵션들
