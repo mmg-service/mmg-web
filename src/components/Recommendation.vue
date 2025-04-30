@@ -1,5 +1,6 @@
 <template>
   <div class="ai-recommendation-section">
+    <!-- 기존 헤더 부분은 동일 -->
     <div class="ai-header">
       <div class="ai-title">
         <i class="fas fa-robot ai-icon"></i> MMG AI 추천
@@ -30,9 +31,19 @@
               <i class="fas fa-map-marker-alt"></i> {{ currentRecommendation.distance || '거리 정보 없음' }}
             </p>
           </div>
+          
+          <!-- 이미지 부분 추가 -->
+          <div class="restaurant-img" v-if="currentRecommendation.image">
+            <img :src="currentRecommendation.image" alt="식당 이미지">
+          </div>
+          <div class="restaurant-img no-image" v-else>
+            <i class="fas fa-utensils"></i>
+          </div>
+          
           <router-link to="/order" class="order-button">하이<br>오더</router-link>
         </div>
 
+        <!-- 나머지 코드는 동일 -->
         <div class="ai-reason">
           <div class="reason-label">추천 이유:</div>
           <p>{{ currentRecommendation.aiReason || '이 매장은 현재 위치에서 가장 가까운 매장입니다.' }}</p>
@@ -118,23 +129,78 @@ const props = defineProps({
   color: #FF5722;
 }
 
+/* restaurant-preview 수평 정렬을 위한 수정 */
 .restaurant-preview {
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
 
+/* restaurant-info 스타일 수정 */
 .restaurant-info {
+  flex: 1;  /* 비율 조정 */
   display: flex;
-  justify-content: space-between;
-  flex-direction: row;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 10px;
 }
 
-.restaurant-info h3 {
-  margin: 0 0 5px 0;
-  font-size: 18px;
-  color: #333;
+/* 이미지 컨테이너 스타일 */
+.restaurant-img {
+  flex: 1;  /* 비율 조정 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70px;
+  width: 70px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  margin: 0 10px;
+}
+
+.restaurant-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.restaurant-img.no-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #aaa;
+  font-size: 24px;
+}
+
+/* 오더 버튼 스타일 수정 */
+.order-button {
+  flex: 0 0 auto; /* 크기 고정 */
+  background-color: white;
+  border: 1px solid #FF5722;
+  color: #FF5722;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  height: 60px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.order-button:hover {
+  background-color: #FFF0ED;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .rating {
@@ -208,6 +274,7 @@ const props = defineProps({
   font-size: 15px;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(3, 199, 90, 0.25);
+  transition: all 0.2s ease;
 }
 
 .view-details-btn:hover {
@@ -215,42 +282,21 @@ const props = defineProps({
   box-shadow: 0 5px 12px rgba(3, 199, 90, 0.35);
 }
 
-.order-button {
-  background-color: white;
-  border: 1px solid #ddd;
-  color: black;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-left: 10px;
-  vertical-align: middle;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.order-button:hover {
-  background-color: #f9f9f9;
-}
-
-/* restaurant-info 스타일 수정 */
-.restaurant-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* restaurant-preview 스타일 수정 */
-.restaurant-preview {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+/* 반응형 디자인을 위한 미디어 쿼리 */
+@media (max-width: 480px) {
+  .restaurant-img {
+    width: 60px;
+    height: 60px;
+    margin: 0 8px;
+  }
+  
+  .order-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .restaurant-info h3 {
+    font-size: 16px;
+  }
 }
 </style>
