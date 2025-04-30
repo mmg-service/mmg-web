@@ -124,6 +124,14 @@
       </div>
     </div>
 
+    <!-- 로딩 인디케이터 -->
+    <div class="loading-modal" v-if="isLoading">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>AI가 리뷰를 작성 중입니다...</p>
+      </div>
+    </div>
+
     <!-- 리뷰 저장 성공 모달 -->
     <div class="review-success-modal" v-if="showReviewSuccessModal">
       <div class="review-success-content">
@@ -140,10 +148,38 @@
           </div>
         </div>
         <div class="review-success-footer">
-          <button class="confirm-button" @click="closeReviewSuccessModal">
+          <button class="regenerate-button" @click="regenerateReview">
+            다시 생성
+          </button>
+          <button class="confirm-button" @click="showSaveConfirmModal">
             확인
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 저장 확인 모달 -->
+    <div class="save-confirm-modal" v-if="showSaveConfirm">
+      <div class="save-confirm-content">
+        <h3>이대로 저장하시겠습니까?</h3>
+        <div class="save-confirm-buttons">
+          <button class="cancel-button" @click="showSaveConfirm = false">
+            취소
+          </button>
+          <button class="confirm-button" @click="saveReview">
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 저장 완료 모달 -->
+    <div class="save-success-modal" v-if="showSaveSuccess">
+      <div class="save-success-content">
+        <h3>저장되었습니다</h3>
+        <button class="confirm-button" @click="closeSaveSuccessModal">
+          확인
+        </button>
       </div>
     </div>
   </div>
@@ -196,6 +232,9 @@ export default {
       orderComplete: false,
       showReviewModal: false,
       showReviewSuccessModal: false,
+      showSaveConfirm: false,
+      showSaveSuccess: false,
+      isLoading: false,
       reviewText: "",
       lastOrderId: null,
       responseData: null,
@@ -265,59 +304,86 @@ export default {
         return;
       }
 
-      // 리뷰
+      // 리뷰 데이터 준비
       const reviewData = {
         review: this.reviewText,
       };
 
-      // API 호출 함수
+      // 로딩 표시 시작
+      this.isLoading = true;
+      this.showReviewModal = false;
+
+      // API 호출
       this.sendReviewToServer(reviewData);
     },
-    // async getClaudeReview() {
-      
-    // },
     async sendReviewToServer(reviewData) {
-      // 실제 API 호출 코드
-      console.log("리뷰 데이터 전송:", reviewData);
+      try {
+        console.log("리뷰 데이터 전송:", reviewData);
 
-      // 예시: axios를 사용한 호출
+        // API 호출
+        const responseData = await reviewService.getClaudeReview(reviewData);
+        console.log("res: ", responseData);
 
-      const responseData = await reviewService.getClaudeReview(reviewData);
-      // response
-      console.log("res: ", responseData);
-
-      // API가 아직 구현되지 않았으므로 임시 데이터로 성공 처리
-      setTimeout(() => {
-        // 임시 응답 데이터
-        // const mockResponse = {
-        //   success: true,
-        //   reviewId: Math.floor(Math.random() * 1000),
-        //   message: "리뷰가 성공적으로 등록되었습니다.",
-        //   data: {
-        //     orderId: reviewData.orderId,
-        //     content: reviewData.review,
-        //     rating: reviewData.rating,
-        //     createdAt: new Date().toISOString(),
-        //     status: "approved",
-        //   },
-        // };
-
+        // 로딩 완료 및 결과 표시
         this.responseData = responseData;
-        this.showReviewModal = false;
-        this.showReviewSuccessModal = true;
-        this.reviewText = "";
-        this.cartItems = []; // 리뷰 작성 후 장바구니 비우기
-      }, 500);
+        setTimeout(() => {
+          this.isLoading = false;
+          this.showReviewSuccessModal = true;
+          // 리뷰 텍스트를 초기화하지 않고 유지 (다시 생성 버튼을 위해)
+          // this.reviewText = ""; 
+        }, 500); // 로딩 인디케이터를 최소 0.5초 이상 표시
+      } catch (error) {
+        console.error("리뷰 전송 오류:", error);
+        this.isLoading = false;
+        alert("리뷰 생성 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        this.showReviewModal = true;
+      }
     },
     closeReviewSuccessModal() {
       this.showReviewSuccessModal = false;
       this.responseData = null;
     },
+    regenerateReview() {
+      // 리뷰 작성 모달을 다시 표시하지 않고 이전 리뷰 텍스트로 직접 API 재호출
+      this.showReviewSuccessModal = false;
+      
+      // 로딩 표시 시작
+      this.isLoading = true;
+      
+      // 이전에 입력한 reviewText를 사용하여 API 다시 호출
+      const reviewData = {
+        review: this.reviewText
+      };
+      
+      // API 호출
+      this.sendReviewToServer(reviewData);
+    },
+    showSaveConfirmModal() {
+      this.showSaveConfirm = true;
+    },
+    saveReview() {
+      // 실제 저장 로직 (API 호출 등)을 여기에 구현
+      // 예시: reviewService.saveReview(this.responseData);
+      
+      console.log("저장된 리뷰:", this.responseData?.data?.content);
+      
+      // 모달 전환
+      this.showSaveConfirm = false;
+      this.showSaveSuccess = true;
+      
+      // 장바구니 비우기 (리뷰 저장 시)
+      this.cartItems = [];
+    },
+    closeSaveSuccessModal() {
+      this.showSaveSuccess = false;
+      this.showReviewSuccessModal = false;
+      this.responseData = null;
+    }
   },
 };
 </script>
   
-  <style scoped>
+<style scoped>
 .logo-container {
   display: flex;
   align-items: right;
@@ -514,7 +580,10 @@ export default {
 .cart-modal,
 .order-complete-modal,
 .review-modal,
-.review-success-modal {
+.review-success-modal,
+.save-confirm-modal,
+.save-success-modal,
+.loading-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -530,7 +599,9 @@ export default {
 .cart-modal-content,
 .order-complete-content,
 .review-modal-content,
-.review-success-content {
+.review-success-content,
+.save-confirm-content,
+.save-success-content {
   background-color: #fff;
   width: 90%;
   max-width: 500px;
@@ -627,7 +698,9 @@ export default {
 }
 
 .confirm-button,
-.review-button {
+.review-button,
+.regenerate-button,
+.cancel-button {
   padding: 0.8rem 1.5rem;
   border-radius: 4px;
   font-size: 1rem;
@@ -638,6 +711,17 @@ export default {
 .confirm-button {
   background-color: #00c2b3;
   color: white;
+}
+
+.regenerate-button {
+  background-color: #4285f4;
+  color: white;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
 }
 
 .review-button {
@@ -705,6 +789,56 @@ export default {
   border-top: 1px solid #eee;
   display: flex;
   justify-content: center;
+  gap: 1rem;
+}
+
+/* 저장 확인 모달 스타일 */
+.save-confirm-content,
+.save-success-content {
+  padding: 2rem;
+  text-align: center;
+}
+
+.save-confirm-content h3,
+.save-success-content h3 {
+  margin: 0 0 1.5rem;
+}
+
+.save-confirm-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* 로딩 스타일 */
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #00c2b3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-content p {
+  color: #333;
+  font-weight: 500;
+  margin: 0;
 }
 </style>
-
