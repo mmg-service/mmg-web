@@ -33,7 +33,6 @@
           <h3 class="menu-name">{{ menu.name }}</h3>
           <p class="menu-price">{{ formatPrice(menu.price) }}원</p>
           <button class="order-button" @click="addToCart(menu)">담기</button>
-
         </div>
       </div>
     </div>
@@ -122,7 +121,12 @@
           ></textarea>
         </div>
         <div class="review-actions">
-          <button class="save-button" @click="submitReview">완료</button>
+          <button class="save-button" @click="saveUserReview">
+            이대로 리뷰저장
+          </button>
+          <button class="save-button" @click="submitReview">
+            AI에게 작성요청
+          </button>
         </div>
       </div>
     </div>
@@ -139,7 +143,7 @@
     <div class="review-success-modal" v-if="showReviewSuccessModal">
       <div class="review-success-content">
         <div class="review-success-header">
-          <h3>AI가 완성한 리뷰입니다✨</h3>
+          <h3>AI가 완성한 리뷰입니다🤖✨</h3>
           <button class="close-button" @click="closeReviewSuccessModal">
             &times;
           </button>
@@ -155,7 +159,7 @@
             다시 생성
           </button>
           <button class="confirm-button" @click="showSaveConfirmModal">
-            확인
+            저장
           </button>
         </div>
       </div>
@@ -169,9 +173,7 @@
           <button class="cancel-button" @click="showSaveConfirm = false">
             취소
           </button>
-          <button class="confirm-button" @click="saveReview">
-            확인
-          </button>
+          <button class="confirm-button" @click="saveReview">확인</button>
         </div>
       </div>
     </div>
@@ -189,11 +191,11 @@
 </template>
 <script>
 import reviewService from "@/services/review.service";
-import ReviewSummary from '@/components/review/ReviewSummary.vue'
+import ReviewSummary from "@/components/review/ReviewSummary.vue";
 
 export default {
   components: {
-    ReviewSummary
+    ReviewSummary,
   },
   name: "MenuOrderView",
   data() {
@@ -246,7 +248,8 @@ export default {
       reviewText: "",
       lastOrderId: null,
       responseData: null,
-      restaurantReviewSummary: '이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.'
+      restaurantReviewSummary:
+        "이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.",
     };
   },
   computed: {
@@ -301,6 +304,8 @@ export default {
         this.lastOrderId = Math.floor(Math.random() * 10000); // 임시 주문 ID 생성 (실제로는 API에서 받아옴)
         this.orderComplete = true;
         // 주문 완료 후 주문내역 비우기는 리뷰 작성 후 또는 확인 버튼 클릭 시 처리
+      } else {
+        alert("장바구니를 채워주세요.");
       }
     },
     openReviewModal() {
@@ -339,7 +344,7 @@ export default {
           this.isLoading = false;
           this.showReviewSuccessModal = true;
           // 리뷰 텍스트를 초기화하지 않고 유지 (다시 생성 버튼을 위해)
-          // this.reviewText = ""; 
+          // this.reviewText = "";
         }, 500); // 로딩 인디케이터를 최소 0.5초 이상 표시
       } catch (error) {
         console.error("리뷰 전송 오류:", error);
@@ -355,31 +360,35 @@ export default {
     regenerateReview() {
       // 리뷰 작성 모달을 다시 표시하지 않고 이전 리뷰 텍스트로 직접 API 재호출
       this.showReviewSuccessModal = false;
-      
+
       // 로딩 표시 시작
       this.isLoading = true;
-      
+
       // 이전에 입력한 reviewText를 사용하여 API 다시 호출
       const reviewData = {
-        review: this.reviewText
+        review: this.reviewText,
       };
-      
+
       // API 호출
       this.sendReviewToServer(reviewData);
     },
     showSaveConfirmModal() {
       this.showSaveConfirm = true;
     },
+    saveUserReview() {
+      this.showReviewModal = false;
+      this.showSaveConfirm = true;
+    },
     saveReview() {
       // 실제 저장 로직 (API 호출 등)을 여기에 구현
       // 예시: reviewService.saveReview(this.responseData);
-      
+
       console.log("저장된 리뷰:", this.responseData?.data?.content);
-      
+
       // 모달 전환
       this.showSaveConfirm = false;
       this.showSaveSuccess = true;
-      
+
       // 장바구니 비우기 (리뷰 저장 시)
       this.cartItems = [];
     },
@@ -387,8 +396,8 @@ export default {
       this.showSaveSuccess = false;
       this.showReviewSuccessModal = false;
       this.responseData = null;
-      this.reviewText = ""
-    }
+      this.reviewText = "";
+    },
   },
 };
 </script>
@@ -759,6 +768,7 @@ export default {
   border-top: 1px solid #eee;
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .save-button {
@@ -842,8 +852,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-content p {
