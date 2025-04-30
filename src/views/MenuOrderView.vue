@@ -32,14 +32,19 @@
         <div class="menu-info">
           <h3 class="menu-name">{{ menu.name }}</h3>
           <p class="menu-price">{{ formatPrice(menu.price) }}원</p>
-          <button class="order-button" @click="addToCart(menu)">담기</button>
+          <button class="order-button" @click="addToCartWithAnimation($event, menu)">담기</button>
         </div>
       </div>
     </div>
 
+    <!-- 장바구니 아이템 애니메이션용 요소 -->
+    <div id="cart-animation-item" class="cart-animation-item">
+      <i class="fas fa-utensils"></i>
+    </div>
+
     <div class="order-footer">
       <div class="cart-info">
-        <button class="cart-button" @click="showCartItems">
+        <button class="cart-button" id="cart-button" @click="showCartItems">
           <i class="fas fa-shopping-cart"></i>
           <span class="cart-count">{{ cartCount }}</span>
         </button>
@@ -270,7 +275,65 @@ export default {
     formatPrice(price) {
       return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
+    addToCartWithAnimation(event, menu) {
+      // 기존 장바구니 추가 기능
+      const existingItem = this.cartItems.find((item) => item.id === menu.id);
+
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        this.cartItems.push({
+          id: menu.id,
+          name: menu.name,
+          price: menu.price,
+          quantity: 1,
+        });
+      }
+
+      // 애니메이션 시작
+      this.animateAddToCart(event);
+    },
+    animateAddToCart(event) {
+      // 애니메이션 요소
+      const animationItem = document.getElementById('cart-animation-item');
+      
+      // 장바구니 버튼 위치 가져오기
+      const cartButton = document.getElementById('cart-button');
+      const cartRect = cartButton.getBoundingClientRect();
+      
+      // 클릭한 버튼 위치 가져오기
+      const buttonRect = event.target.getBoundingClientRect();
+      
+      // 애니메이션 요소 시작 위치 설정
+      animationItem.style.top = `${buttonRect.top}px`;
+      animationItem.style.left = `${buttonRect.left}px`;
+      
+      // 애니메이션 요소 표시
+      animationItem.style.display = 'flex';
+      
+      // 이동 애니메이션 설정
+      setTimeout(() => {
+        animationItem.style.top = `${cartRect.top + (cartRect.height / 2) - 12}px`;
+        animationItem.style.left = `${cartRect.left + (cartRect.width / 2) - 12}px`;
+        animationItem.style.opacity = '0.8';
+        animationItem.style.transform = 'scale(0.5)';
+      }, 50);
+      
+      // 애니메이션 종료 후 초기화
+      setTimeout(() => {
+        animationItem.style.display = 'none';
+        animationItem.style.opacity = '1';
+        animationItem.style.transform = 'scale(1)';
+        
+        // 장바구니 아이콘 강조 효과
+        cartButton.classList.add('cart-button-highlight');
+        setTimeout(() => {
+          cartButton.classList.remove('cart-button-highlight');
+        }, 300);
+      }, 500);
+    },
     addToCart(menu) {
+      // 기존 방식을 유지하기 위해 남겨둠 (다른 곳에서 호출할 경우 대비)
       const existingItem = this.cartItems.find((item) => item.id === menu.id);
 
       if (existingItem) {
@@ -561,6 +624,13 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* 장바구니 버튼 강조 효과 */
+.cart-button-highlight {
+  transform: scale(1.2);
+  color: #f44336;
 }
 
 .cart-count {
@@ -593,6 +663,23 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* 장바구니 애니메이션 아이템 스타일 */
+.cart-animation-item {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  background-color: #f44336;
+  color: white;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  pointer-events: none; /* 클릭 이벤트를 통과시키기 */
+  transition: all 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67); /* 부드러운 움직임 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* 모달 스타일 */
