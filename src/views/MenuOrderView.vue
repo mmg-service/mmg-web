@@ -387,6 +387,7 @@ export default {
       this.showSaveSuccess = false;
       this.showReviewSuccessModal = false;
       this.responseData = null;
+      this.reviewText = ""
     }
   },
 };
