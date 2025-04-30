@@ -134,7 +134,8 @@
         </div>
         <div class="review-response-data">
           <div class="response-data-box">
-            <pre>{{ JSON.stringify(responseData, null, 2) }}</pre>
+            <!-- <pre>{{ JSON.stringify(responseData, null, 2) }}</pre> -->
+            <p>{{ responseData?.data?.content }}</p>
           </div>
         </div>
         <div class="review-success-footer">
@@ -286,27 +287,27 @@ export default {
       console.log("res: ", responseData);
 
       // API가 아직 구현되지 않았으므로 임시 데이터로 성공 처리
-      // setTimeout(() => {
-      //   // 임시 응답 데이터
-      //   const mockResponse = {
-      //     success: true,
-      //     reviewId: Math.floor(Math.random() * 1000),
-      //     message: "리뷰가 성공적으로 등록되었습니다.",
-      //     data: {
-      //       orderId: reviewData.orderId,
-      //       content: reviewData.review,
-      //       rating: reviewData.rating,
-      //       createdAt: new Date().toISOString(),
-      //       status: "approved",
-      //     },
-      //   };
+      setTimeout(() => {
+        // 임시 응답 데이터
+        // const mockResponse = {
+        //   success: true,
+        //   reviewId: Math.floor(Math.random() * 1000),
+        //   message: "리뷰가 성공적으로 등록되었습니다.",
+        //   data: {
+        //     orderId: reviewData.orderId,
+        //     content: reviewData.review,
+        //     rating: reviewData.rating,
+        //     createdAt: new Date().toISOString(),
+        //     status: "approved",
+        //   },
+        // };
 
-      //   this.responseData = mockResponse;
-      //   this.showReviewModal = false;
-      //   this.showReviewSuccessModal = true;
-      //   this.reviewText = "";
-      //   this.cartItems = []; // 리뷰 작성 후 장바구니 비우기
-      // }, 500);
+        this.responseData = responseData;
+        this.showReviewModal = false;
+        this.showReviewSuccessModal = true;
+        this.reviewText = "";
+        this.cartItems = []; // 리뷰 작성 후 장바구니 비우기
+      }, 500);
     },
     closeReviewSuccessModal() {
       this.showReviewSuccessModal = false;
