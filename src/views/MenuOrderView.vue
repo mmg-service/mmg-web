@@ -366,7 +366,7 @@ export default {
         // 여기서 실제 주문 API를 호출하고 주문 ID를 받아옴
         this.lastOrderId = Math.floor(Math.random() * 10000); // 임시 주문 ID 생성 (실제로는 API에서 받아옴)
         this.orderComplete = true;
-        // 주문 완료 후 주문내역 비우기는 리뷰 작성 후 또는 확인 버튼 클릭 시 처리
+        this.cartItems = [];
       } else {
         alert("장바구니를 채워주세요.");
       }
