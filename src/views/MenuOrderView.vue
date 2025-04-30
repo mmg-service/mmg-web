@@ -198,6 +198,7 @@
 import reviewService from "@/services/review.service";
 import ReviewSummary from "@/components/review/ReviewSummary.vue";
 import orderingService from "@/services/ordering.service";
+import { mapState } from 'vuex';
 
 export default {
   components: {
@@ -219,14 +220,33 @@ export default {
       reviewText: "",
       lastOrderId: null,
       responseData: null,
-      restaurantReviewSummary:
-        "이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.",
+      restaurantReviewSummary:"리뷰 요약중...",
     };
   },
   async mounted() {
     console.log(this.$route.query.name)
+    if (this.userLocation) {
+      console.log('사용자 위치:', this.userLocation);
+      // 위치 정보를 활용한 추가 작업
+      const lat = this.userLocation.lat
+      const lng = this.userLocation.lng
+    }
     const restaurantName = this.$route.query.name;
+
+    // 리뷰 요약하기
+    try {
+        // API 호출
+        const responseData = await reviewService.getReviewSummary(restaurantName);
+        console.log("res: ", responseData);
+
+        // 결과 표시
+        this.restaurantReviewSummary = responseData;
+
+      } catch (error) {
+        console.error("리뷰 요약 오류:", error);
+      }
     
+    // 메뉴 리스트 가져오기
     if (restaurantName) {
       try {
         // 로딩 상태를 표시할 수도 있습니다
@@ -254,6 +274,7 @@ export default {
     }
   },
   computed: {
+    ...mapState('map', ['userLocation']),
     cartCount() {
       return this.cartItems.reduce((total, item) => total + item.quantity, 0);
     },
