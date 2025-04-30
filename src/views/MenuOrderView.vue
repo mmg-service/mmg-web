@@ -197,6 +197,7 @@
 <script>
 import reviewService from "@/services/review.service";
 import ReviewSummary from "@/components/review/ReviewSummary.vue";
+import orderingService from "@/services/ordering.service";
 
 export default {
   components: {
@@ -206,41 +207,6 @@ export default {
   data() {
     return {
       menuItems: [
-        {
-          id: 1,
-          name: "꼬짜떡볶이",
-          price: 5000,
-          image: require("@/assets/images/sample_small_menu_tteokbokki_1.jpg"),
-          isBest: true,
-        },
-        {
-          id: 2,
-          name: "돈까스떡볶이",
-          price: 6000,
-          image: require("@/assets/images/sample_small_menu_tteokbokki_2.jpg"),
-          isBest: false,
-        },
-        {
-          id: 3,
-          name: "즉석떡볶이",
-          price: 9000,
-          image: require("@/assets/images/sample_small_menu_tteokbokki_1.jpg"),
-          isBest: false,
-        },
-        {
-          id: 4,
-          name: "치즈떡볶이",
-          price: 6500,
-          image: require("@/assets/images/sample_small_menu_tteokbokki_1.jpg"),
-          isBest: false,
-        },
-        {
-          id: 5,
-          name: "매운떡볶이",
-          price: 5500,
-          image: require("@/assets/images/sample_small_menu_tteokbokki_2.jpg"),
-          isBest: false,
-        },
       ],
       cartItems: [],
       showCart: false,
@@ -256,6 +222,36 @@ export default {
       restaurantReviewSummary:
         "이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.",
     };
+  },
+  async mounted() {
+    console.log(this.$route.query.name)
+    const restaurantName = this.$route.query.name;
+    
+    if (restaurantName) {
+      try {
+        // 로딩 상태를 표시할 수도 있습니다
+        // this.isLoading = true;
+        
+        const response = await orderingService.getMenuList(restaurantName);
+        this.menuItems = response.menuList.map((item, index) => ({
+          id: index + 1,
+          name: item.name,
+          price: item.price,
+          image: item.imgpath, // URL 직접 사용
+          isBest: index === 0 // 첫 번째 아이템만 대표 메뉴로 설정
+        }));
+        // console.log("Menu items fetched:", response);
+      } catch (error) {
+        console.error("Error fetching menu list:", error);
+        // 에러 처리 - 필요에 따라 사용자에게 알림 표시
+        alert("메뉴 목록을 불러오는데 실패했습니다.");
+      } finally {
+        // 로딩 상태 종료
+        // this.isLoading = false;
+      }
+    } else {
+      console.warn("Restaurant name not provided in query parameters");
+    }
   },
   computed: {
     cartCount() {

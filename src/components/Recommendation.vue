@@ -40,7 +40,16 @@
             <i class="fas fa-utensils"></i>
           </div>
           
-          <router-link to="/order" class="order-button">하이<br>오더</router-link>
+          <router-link
+            :to="{
+              path: '/order',
+              query: {
+                name: currentRecommendation.name
+              },
+            }"
+            class="order-button"
+            >하이<br />오더</router-link
+          >
         </div>
 
         <!-- 나머지 코드는 동일 -->
