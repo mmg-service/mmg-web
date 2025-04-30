@@ -14,11 +14,14 @@
       </div>
     </header>
 
-    <div class="menu-tabs">
+    <!-- <div class="menu-tabs">
       <button class="tab-button active">주메뉴</button>
       <button class="tab-button">사이드</button>
       <button class="tab-button">음료</button>
-    </div>
+    </div> -->
+
+    <!-- 새로운 리뷰 요약 컴포넌트 -->
+    <ReviewSummary :summaryText="restaurantReviewSummary" />
 
     <div class="menu-list">
       <div v-for="menu in menuItems" :key="menu.id" class="menu-card">
@@ -150,7 +153,12 @@
 </template>
 <script>
 import reviewService from "@/services/review.service";
+import ReviewSummary from '@/components/review/ReviewSummary.vue'
+
 export default {
+  components: {
+    ReviewSummary
+  },
   name: "MenuOrderView",
   data() {
     return {
@@ -199,6 +207,7 @@ export default {
       reviewText: "",
       lastOrderId: null,
       responseData: null,
+      restaurantReviewSummary: '이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.이 음식점은 신선한 재료와 친절한 서비스로 인기가 많습니다. 특히 주말에는 예약이 필수입니다.'
     };
   },
   computed: {
