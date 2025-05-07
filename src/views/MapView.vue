@@ -832,11 +832,13 @@ const setRecommendation = (place, aiRecommend = null) => {
 // 추천 이유 생성
 const generateRecommendationReason = (place, distance) => {
   const reasons = [
-    `${place.title}은(는) 현재 위치에서 ${distance} 거리에 있는 ${place.category} 매장입니다.`,
-    `이 매장은 현재 위치 주변에서 많은 이용자들이 방문하는 인기있는 ${place.category}입니다.`,
-    `${place.title}은(는) ${place.category} 중에서 현재 위치와 가깝고 사용자 평가가 좋은 매장입니다.`,
-    `이 ${place.category}은(는) 현재 위치에서 접근성이 좋은 매장으로 추천드립니다.`,
-  ];
+  `${place.title}은(는) 현재 위치에서 ${distance} 거리에 있어 바쁜 일정 사이 빠르게 방문할 수 있는 ${place.category} 매장입니다.`,
+  `이 매장은 비즈니스 미팅이나 고객 상담하기에 적합한 분위기를 갖춘 인기 ${place.category}로, 영업 활동 중 잠시 들르기 좋습니다.`,
+  `${place.title}은(는) 와이파이와 충전 시설이 잘 갖춰져 있어 외근 중 업무를 처리하기에 최적화된 ${place.category} 매장입니다.`,
+  `이 ${place.category}은(는) 주변 비즈니스 지역과 가까워 고객과의 약속 전후로 시간을 효율적으로 활용할 수 있습니다.`,
+  `${place.title}은(는) 동종 업계 전문가들도 자주 찾는 ${place.category}로, 자연스러운 네트워킹 기회를 얻을 수 있습니다.`,
+  `이 ${place.category}은(는) 빠른 서비스와 안정적인 품질로 평가받아 바쁜 영업일정 중에도 시간 낭비 없이 이용할 수 있습니다.`
+];
 
   // 랜덤하게 이유 선택
   const randomIndex = Math.floor(Math.random() * reasons.length);
