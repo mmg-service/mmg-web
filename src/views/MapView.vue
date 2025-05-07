@@ -1,7 +1,7 @@
 <template>
   <div class="map-page">
     <!-- 검색창 영역 -->
-    <div class="search-bar">
+    <!-- <div class="search-bar">
       <div class="search-input">
         <input
           type="text"
@@ -13,20 +13,27 @@
           <i class="fas fa-search"></i>
         </button>
       </div>
-    </div>
+    </div> -->
 
+    <!-- 광고 영역-->
+    <!-- <div v-if="isLoading">
+      <img src="../assets/images/high_order.gif" alt="Loading..." class="spinner-gif" />
+    </div> -->
+    
     <!-- 지도 컨테이너 -->
-    <div class="map-container">
-      <div id="map" ref="mapElement"></div>
-    </div>
+    <div>
+      <div class="map-container">
+        <div id="map" ref="mapElement"></div>
+      </div>
 
-    <!-- 하단 추천 영역 -->
-    <Recommendation
-      :isLoading="isLoading"
-      :currentRecommendation="currentRecommendation"
-      :openNaverMap="openNaverMap"
-      :userLocation="userLocation"
-    />
+      <!-- 하단 추천 영역 -->
+      <Recommendation
+        :isLoading="isLoading"
+        :currentRecommendation="currentRecommendation"
+        :openNaverMap="openNaverMap"
+        :userLocation="userLocation"
+      />
+    </div>
 
     <!-- 하단 탭 영역 (목록 및 필터) -->
     <div class="bottom-tabs">
@@ -226,8 +233,6 @@ const etcOptions = [
 const userLocation = computed(() => store.getters["map/userLocation"]);
 
 // 필터 설정 함수들
-
-
 const setFoodAndSearch = (food) => {
   activeCategory.value = food;
   // searchPlaces();
@@ -456,7 +461,7 @@ const getUserLocation = () => {
           }
         }
 
-        isLoading.value = false;
+        // isLoading.value = false;
       },
       (error) => {
         console.error("위치 정보를 가져오는데 실패했습니다:", error);
@@ -478,7 +483,7 @@ const getUserLocation = () => {
           }
         }
 
-        isLoading.value = false;
+        // isLoading.value = false;
       }
     );
   } else {
@@ -497,7 +502,7 @@ const getUserLocation = () => {
       // searchNearbyPlaces();
     }
 
-    isLoading.value = false;
+    // isLoading.value = false;
   }
 };
 
@@ -608,8 +613,6 @@ const searchNearbyPlaces = () => {
 
 // 검색창 검색
 const searchPlaces = () => {
-  isLoading.value = true;
-
   searchNaverPlaces();
 };
 
@@ -959,7 +962,7 @@ const goToMyPage = () => {
   position: relative;
   flex: 1;
   width: 100%;
-  height: 65vh; /* 3/4 정도로 높이 조정 */
+  height: 50vh; /* 3/4 정도로 높이 조정 */
   z-index: 1;
 }
 
@@ -1233,5 +1236,11 @@ const goToMyPage = () => {
   font-size: 14px;
   color: #666;
   margin: 5px 0;
+}
+
+.spinner-gif {
+  width: 100%;
+  height: 125%;
+  margin-top: 20%;
 }
 </style>
