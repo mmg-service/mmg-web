@@ -16,13 +16,13 @@
     </div> -->
 
     <!-- 광고 영역-->
-    <!-- <div v-if="isLoading">
+    <div v-if="isLoading">
       <img src="../assets/images/high_order.gif" alt="Loading..." class="spinner-gif" />
-    </div> -->
+    </div>
     
     <!-- 지도 컨테이너 -->
     <div>
-      <div class="map-container">
+      <div class="map-container" :class="{ 'hidden': isLoading }">
         <div id="map" ref="mapElement"></div>
       </div>
 
@@ -618,7 +618,7 @@ const searchPlaces = () => {
 
 // 네이버 지역 API로 장소 검색
 const searchNaverPlaces = async () => {
-  isLoading.value = true;
+  
 
   // 카테고리 키워드 가져오기
   const categoryObj = foodCategories.find(
@@ -651,7 +651,8 @@ const searchNaverPlaces = async () => {
         // console.log("request Payload:", requestPayload);
 
         const response = await recommendationService.recommendNearby(requestPayload);
-
+        isLoading.value = false;
+        
         // console.log("api response:", response);
 
         const mockResults = response.items;
@@ -711,7 +712,7 @@ const searchNaverPlaces = async () => {
     searchResults.value = [];
     currentRecommendation.value = null;
   } finally {
-    isLoading.value = false;
+    // isLoading.value = false;
   }
 };
 
@@ -1242,5 +1243,21 @@ const goToMyPage = () => {
   width: 100%;
   height: 125%;
   margin-top: 20%;
+}
+
+.loading-overlay {
+  position: fixed;  /* 또는 absolute */
+  width: 100%;
+  height: 125%;
+  margin-top: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 1000;  /* 높은 z-index로 다른 요소 위에 표시 */
+}
+
+.hidden {
+  visibility: hidden;  /* 또는 display: none; */
 }
 </style>
