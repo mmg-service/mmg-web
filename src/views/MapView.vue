@@ -33,21 +33,22 @@
       <!-- 탭 헤더 - 항상 표시 -->
       <div class="tab-header">
         <div class="tab-buttons">
-          <button class="tab-btn" :class="{ active: activeMainTab === 'list' }" @click="activeMainTab = 'list'">
-            목록
+          <button class="tab-btn" :class="{ active: activeMainTab === 'food' }" @click="activeMainTab = 'food'">
+            음식종류
+          </button>
+          <button class="tab-btn" :class="{ active: activeMainTab === 'purpose' }" @click="activeMainTab = 'purpose'">
+            목적
           </button>
           <button class="tab-btn" :class="{ active: activeMainTab === 'person' }" @click="activeMainTab = 'person'">
             인원
           </button>
-          <button class="tab-btn" :class="{ active: activeMainTab === 'analysis' }" @click="activeMainTab = 'analysis'">
+          <button class="tab-btn" :class="{ active: activeMainTab === 'atmosphere' }" @click="activeMainTab = 'atmosphere'">
             분위기
           </button>
-          <button class="tab-btn" :class="{ active: activeMainTab === 'price' }" @click="activeMainTab = 'price'">
-            가격대
+          <button class="tab-btn" :class="{ active: activeMainTab === 'etc' }" @click="activeMainTab = 'etc'">
+            기타
           </button>
-          <button class="tab-btn" :class="{ active: activeMainTab === 'distance' }" @click="activeMainTab = 'distance'">
-            거리
-          </button>
+          
           <div class="filter-toggle" @click="toggleFilters">
             <i :class="['fas', showFilters ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
           </div>
@@ -57,50 +58,32 @@
       <!-- 필터가 열려있을 때만 탭 내용과 필터 적용하기 버튼 표시 -->
       <div v-if="showFilters">
         <!-- 각 탭 별 내용 -->
-        <div class="categories-container" v-if="activeMainTab === 'list'">
+
+        <div class="categories-container" v-if="activeMainTab === 'food'">
           <div class="categories-row">
             <button
-              class="category-btn"
-              :class="{ active: activePurpose === 'daily' }"
-              @click="setPurposeAndSearch('daily')"
+              v-for="food in foodCategories"
+              :key="food.value"
+              :class="['category-btn', { active: activeCategory === food.value }]"
+              @click="setFoodAndSearch(food.value)"
             >
-              일상식사
+              {{ food.label }}
             </button>
+            
+          </div>
+        </div>
+
+        <div class="categories-container" v-if="activeMainTab === 'purpose'">
+          <div class="categories-row">
             <button
-              class="category-btn"
-              :class="{ active: activePurpose === 'meeting' }"
-              @click="setPurposeAndSearch('meeting')"
+              v-for="purpose in purposeOptions"
+              :key="purpose.value"
+              :class="['category-btn', { active: activePurpose === purpose.value }]"
+              @click="setPurposeAndSearch(purpose.value)"
             >
-              미팅
+              {{ purpose.label }}
             </button>
-            <button
-              class="category-btn"
-              :class="{ active: activePurpose === 'family' }"
-              @click="setPurposeAndSearch('family')"
-            >
-              가족모임
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activePurpose === 'date' }"
-              @click="setPurposeAndSearch('date')"
-            >
-              데이트
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activePurpose === 'company_dinner' }"
-              @click="setPurposeAndSearch('company_dinner')"
-            >
-              회식
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activeMood === 'cafe' }"
-              @click="setMoodAndSearch('cafe')"
-            >
-              카페
-            </button>
+            
           </div>
         </div>
 
@@ -119,7 +102,7 @@
         </div>
 
         <!-- 분위기 탭 내용 -->
-        <div class="categories-container" v-if="activeMainTab === 'analysis'">
+        <div class="categories-container" v-if="activeMainTab === 'atmosphere'">
           <div class="categories-row">
             <button
               v-for="mood in moodOptions"
@@ -132,59 +115,22 @@
           </div>
         </div>
 
-        <!-- 가격대 탭 내용 -->
-        <div class="categories-container" v-if="activeMainTab === 'price'">
+        <!-- 기타 탭 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'etc'">
           <div class="categories-row">
+
             <button
-              class="category-btn"
-              :class="{ active: activePrice === 'low' }"
-              @click="setPriceAndSearch('low')"
+              v-for="etc in etcOptions"
+              :key="etc.value"
+              :class="['category-btn', { active: activeEtc === etc.value }]"
+              @click="setEtcAndSearch(etc.value)"
             >
-              저렴한
+              {{ etc.label }}
             </button>
-            <button
-              class="category-btn"
-              :class="{ active: activePrice === 'medium' }"
-              @click="setPriceAndSearch('medium')"
-            >
-              적당한
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activePrice === 'high' }"
-              @click="setPriceAndSearch('high')"
-            >
-              고급
-            </button>
+
           </div>
         </div>
 
-        <!-- 거리 탭 내용 -->
-        <div class="categories-container" v-if="activeMainTab === 'distance'">
-          <div class="categories-row">
-            <button
-              class="category-btn"
-              :class="{ active: activeDistance === 'near' }"
-              @click="setDistanceAndSearch('near')"
-            >
-              100m 이내
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activeDistance === 'medium' }"
-              @click="setDistanceAndSearch('medium')"
-            >
-              500m 이내
-            </button>
-            <button
-              class="category-btn"
-              :class="{ active: activeDistance === 'far' }"
-              @click="setDistanceAndSearch('far')"
-            >
-              1km 이내
-            </button>
-          </div>
-        </div>
         
         <!-- 필터 적용 버튼 - 필터가 열려있을 때만 표시 -->
         <div class="filter-apply-btn">
@@ -226,15 +172,11 @@ const searchResults = ref([]);
 const locationName = ref("");
 
 // 필터 상태
-const activeGender = ref(null);
-const activeAge = ref(null);
-const activeJob = ref(null);
 const activePurpose = ref(null);
 const activePeopleNum = ref(null);
 const activeMood = ref(null);
-const activeSituation = ref(null);
+const activeEtc = ref(null);
 const activePrice = ref(null);
-const activeDistance = ref(null);
 
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
@@ -244,28 +186,6 @@ const foodCategories = [
   { label: "양식", value: "western", keyword: "양식" },
 ];
 
-// 카테고리 옵션들
-const genderOptions = [
-  { label: "남", value: "male" },
-  { label: "여", value: "female" },
-];
-
-const ageOptions = [
-  { label: "10대", value: "10" },
-  { label: "20대", value: "20" },
-  { label: "30대", value: "30" },
-  { label: "40대", value: "40" },
-  { label: "50대", value: "50" },
-  { label: "60대 이상", value: "60" },
-];
-
-const jobOptions = [
-  { label: "경영/관리직", value: "management" },
-  { label: "의료/보건", value: "healthcare" },
-  { label: "IT/기술", value: "it" },
-  { label: "교육", value: "education" },
-  { label: "금융/회계", value: "finance" },
-];
 
 const purposeOptions = [
   { label: "회식", value: "company_dinner" },
@@ -297,8 +217,8 @@ const moodOptions = [
   { label: "편안한", value: "cozy" },
 ];
 
-const situationOptions = [
-  { label: "세일중", value: "sale" },
+const etcOptions = [
+  { label: "세일중", value: "onSale" },
   { label: "프랜차이즈", value: "franchise" },
 ];
 
@@ -306,20 +226,12 @@ const situationOptions = [
 const userLocation = computed(() => store.getters["map/userLocation"]);
 
 // 필터 설정 함수들
-const setGenderAndSearch = (gender) => {
-  activeGender.value = gender;
-  // searchPlaces();
-};
 
-const setAgeAndSearch = (age) => {
-  activeAge.value = age;
-  // searchPlaces();
-};
 
-const setJobAndSearch = (job) => {
-  activeJob.value = job;
+const setFoodAndSearch = (food) => {
+  activeCategory.value = food;
   // searchPlaces();
-};
+}
 
 const setPurposeAndSearch = (purpose) => {
   activePurpose.value = purpose;
@@ -336,20 +248,12 @@ const setMoodAndSearch = (mood) => {
   // searchPlaces();
 };
 
-const setSituationAndSearch = (situation) => {
-  activeSituation.value = situation;
+
+const setEtcAndSearch = (etc) => {
+  activeEtc.value = etc;
   // searchPlaces();
 };
 
-const setPriceAndSearch = (price) => {
-  activePrice.value = price;
-  // searchPlaces();
-};
-
-const setDistanceAndSearch = (distance) => {
-  activeDistance.value = distance;
-  // searchPlaces();
-};
 
 // 필터 토글 상태
 const showFilters = ref(false);
@@ -734,16 +638,12 @@ const searchNaverPlaces = async () => {
           // query: query,
           // 추가: 필터 조건들
           category: categoryKeyword,
-          sex: activeGender.value || null,
-          age: activeAge.value || null,
-          job: activeJob.value || null,
           purpose: activePurpose.value || null,
           peopleNum: activePeopleNum.value || null,
           atmosphere: activeMood.value || null,
           priceRange: activePrice.value || null,
-          distance: activeDistance.value || null,
-          onSale: activeSituation.value === 'sale' ? true : null,
-          franchise: activeSituation.value === 'franchise' ? true : null,
+          onSale: activeEtc.value === 'sale' ? true : null,
+          franchise: activeEtc.value === 'franchise' ? true : null,
         };
         // console.log("request Payload:", requestPayload);
 
