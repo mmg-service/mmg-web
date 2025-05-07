@@ -274,7 +274,7 @@ export default {
       } catch (error) {
         console.error("Error fetching menu list:", error);
         // 에러 처리 - 필요에 따라 사용자에게 알림 표시
-        alert("메뉴 목록을 불러오는데 실패했습니다.");
+        // alert("메뉴 목록을 불러오는데 실패했습니다.");
       } finally {
         // 로딩 상태 종료
         // this.isLoading = false;
