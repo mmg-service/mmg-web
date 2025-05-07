@@ -251,15 +251,25 @@ export default {
       try {
         // 로딩 상태를 표시할 수도 있습니다
         // this.isLoading = true;
+
+        // 랜덤 가격 배열 정의
+        const randomPrices = [8000, 9000, 10000, 11000, 12000];
         
         const response = await orderingService.getMenuList(restaurantName);
-        this.menuItems = response.menuList.map((item, index) => ({
-          id: index + 1,
-          name: item.name,
-          price: item.price,
-          image: item.imgpath, // URL 직접 사용
-          isBest: index === 0 // 첫 번째 아이템만 대표 메뉴로 설정
-        }));
+        this.menuItems = response.menuList.map((item, index) => {
+          // 가격이 0인 경우 랜덤 가격으로 대체
+          const price = item.price === 0 ? 
+            randomPrices[Math.floor(Math.random() * randomPrices.length)] : 
+            item.price;
+            
+          return {
+            id: index + 1,
+            name: item.name,
+            price: price,
+            image: item.imgpath,
+            isBest: index === 0
+          };
+        });
         // console.log("Menu items fetched:", response);
       } catch (error) {
         console.error("Error fetching menu list:", error);

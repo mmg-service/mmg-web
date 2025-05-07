@@ -154,6 +154,7 @@
       :isLoading="isLoading"
       :currentRecommendation="currentRecommendation"
       :openNaverMap="openNaverMap"
+      :userLocation="userLocation"
     />
 
     <!-- <div class="bottom-actions">

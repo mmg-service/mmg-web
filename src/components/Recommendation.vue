@@ -1,4 +1,5 @@
 <template>
+
   <div class="ai-recommendation-section">
     <!-- 기존 헤더 부분은 동일 -->
     <div class="ai-header">
@@ -44,6 +45,7 @@
             :to="{
               path: '/order',
               query: {
+                userLocation: userLocation,
                 name: currentRecommendation.name
               },
             }"
@@ -83,8 +85,10 @@ import { defineProps } from 'vue';
 const props = defineProps({
   isLoading: { type: Boolean, required: true },
   currentRecommendation: { type: Object, default: null },
-  openNaverMap: { type: Function, required: true }
+  openNaverMap: { type: Function, required: true },
+  userLocation: { type: Object, required: true }
 });
+
 </script>
 
 <style scoped>
