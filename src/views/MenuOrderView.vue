@@ -224,27 +224,32 @@ export default {
     };
   },
   async mounted() {
-    console.log(this.$route.query.name)
-    if (this.userLocation) {
-      console.log('사용자 위치:', this.userLocation);
-      // 위치 정보를 활용한 추가 작업
-      const lat = this.userLocation.lat
-      const lng = this.userLocation.lng
-    }
     const restaurantName = this.$route.query.name;
+    const lng = this.$route.query.lng
+    const lat = this.$route.query.lat
+
+    const param = {
+      longitude: lng,
+      latitude: lat,
+      query: restaurantName
+    };
 
     // 리뷰 요약하기
     try {
-        // API 호출
-        const responseData = await reviewService.getReviewSummary(restaurantName);
-        console.log("res: ", responseData);
+      // API 호출
+      const responseData = await reviewService.getReviewSummary(param);
+      console.log("res: ", responseData);
 
-        // 결과 표시
-        this.restaurantReviewSummary = responseData;
-
-      } catch (error) {
-        console.error("리뷰 요약 오류:", error);
+      // JSON 변환
+      const data = typeof responseData === 'string' ? JSON.parse(responseData) : responseData;
+      
+      // Data/contetn 영역 추출
+      if (data && data.data && data.data.content) {
+        this.restaurantReviewSummary = data.data.content;
       }
+    } catch (error) {
+      console.error("리뷰 요약 오류:", error);
+    }
     
     // 메뉴 리스트 가져오기
     if (restaurantName) {
