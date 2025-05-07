@@ -1,6 +1,6 @@
 <template>
   <div class="map-page">
-    <!-- 검색창 및 필터 영역 -->
+    <!-- 검색창 영역 -->
     <div class="search-bar">
       <div class="search-input">
         <input
@@ -13,135 +13,6 @@
           <i class="fas fa-search"></i>
         </button>
       </div>
-
-      <div class="filter-toggle" @click="toggleFilters">
-        <span>필터 {{ showFilters ? '접기' : '펼치기' }}</span>
-        <i :class="['fas', showFilters ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-      </div>
-
-      <div class="filter-categories" v-show="showFilters">
-      <!-- 카테고리 및 옵션 선택 UI -->
-      <div class="filter-categories">
-        <div class="category-section">
-          <div class="category-title">음식 종류</div>
-          <div class="categories-row">
-            <button
-              v-for="category in foodCategories"
-              :key="category.value"
-              :class="[
-                'category-btn',
-                { active: activeCategory === category.value },
-              ]"
-              @click="setCategoryAndSearch(category.value)"
-            >
-              {{ category.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- 사용자 카테고리 -->
-        <div class="category-section">
-          <div class="category-title">성별</div>
-          <div class="categories-row">
-            <button
-              v-for="gender in genderOptions"
-              :key="gender.value"
-              :class="['category-btn', { active: activeGender === gender.value }]"
-              @click="setGenderAndSearch(gender.value)"
-            >
-              {{ gender.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="category-section">
-          <div class="category-title">나이</div>
-          <div class="categories-row">
-            <button
-              v-for="age in ageOptions"
-              :key="age.value"
-              :class="['category-btn', { active: activeAge === age.value }]"
-              @click="setAgeAndSearch(age.value)"
-            >
-              {{ age.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="category-section">
-          <div class="category-title">직업군</div>
-          <div class="categories-row">
-            <button
-              v-for="job in jobOptions"
-              :key="job.value"
-              :class="['category-btn', { active: activeJob === job.value }]"
-              @click="setJobAndSearch(job.value)"
-            >
-              {{ job.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- 비즈니스 카테고리 -->
-        <div class="category-section">
-          <div class="category-title">목적</div>
-          <div class="categories-row">
-            <button
-              v-for="purpose in purposeOptions"
-              :key="purpose.value"
-              :class="['category-btn', { active: activePurpose === purpose.value }]"
-              @click="setPurposeAndSearch(purpose.value)"
-            >
-              {{ purpose.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="category-section">
-          <div class="category-title">인원</div>
-          <div class="categories-row">
-            <button
-              v-for="count in peopleCountOptions"
-              :key="count.value"
-              :class="['category-btn', { active: activePeopleNum === count.value }]"
-              @click="setPeopleCountAndSearch(count.value)"
-            >
-              {{ count.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="category-section">
-          <div class="category-title">분위기</div>
-          <div class="categories-row">
-            <button
-              v-for="mood in moodOptions"
-              :key="mood.value"
-              :class="['category-btn', { active: activeMood === mood.value }]"
-              @click="setMoodAndSearch(mood.value)"
-            >
-              {{ mood.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- 상황별 카테고리 -->
-        <div class="category-section">
-          <div class="category-title">상황별</div>
-          <div class="categories-row">
-            <button
-              v-for="situation in situationOptions"
-              :key="situation.value"
-              :class="['category-btn', { active: activeSituation === situation.value }]"
-              @click="setSituationAndSearch(situation.value)"
-            >
-              {{ situation.label }}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
     </div>
 
     <!-- 지도 컨테이너 -->
@@ -157,11 +28,170 @@
       :userLocation="userLocation"
     />
 
-    <!-- <div class="bottom-actions">
-      <button class="action-btn" @click="centerToMyLocation">
-        <i class="fas fa-location-arrow"></i>
-      </button>
-    </div> -->
+    <!-- 하단 탭 영역 (목록 및 필터) -->
+    <div class="bottom-tabs">
+      <!-- 탭 헤더 - 항상 표시 -->
+      <div class="tab-header">
+        <div class="tab-buttons">
+          <button class="tab-btn" :class="{ active: activeMainTab === 'list' }" @click="activeMainTab = 'list'">
+            목록
+          </button>
+          <button class="tab-btn" :class="{ active: activeMainTab === 'person' }" @click="activeMainTab = 'person'">
+            인원
+          </button>
+          <button class="tab-btn" :class="{ active: activeMainTab === 'analysis' }" @click="activeMainTab = 'analysis'">
+            분위기
+          </button>
+          <button class="tab-btn" :class="{ active: activeMainTab === 'price' }" @click="activeMainTab = 'price'">
+            가격대
+          </button>
+          <button class="tab-btn" :class="{ active: activeMainTab === 'distance' }" @click="activeMainTab = 'distance'">
+            거리
+          </button>
+          <div class="filter-toggle" @click="toggleFilters">
+            <i :class="['fas', showFilters ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- 필터가 열려있을 때만 탭 내용과 필터 적용하기 버튼 표시 -->
+      <div v-if="showFilters">
+        <!-- 각 탭 별 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'list'">
+          <div class="categories-row">
+            <button
+              class="category-btn"
+              :class="{ active: activePurpose === 'daily' }"
+              @click="setPurposeAndSearch('daily')"
+            >
+              일상식사
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePurpose === 'meeting' }"
+              @click="setPurposeAndSearch('meeting')"
+            >
+              미팅
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePurpose === 'family' }"
+              @click="setPurposeAndSearch('family')"
+            >
+              가족모임
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePurpose === 'date' }"
+              @click="setPurposeAndSearch('date')"
+            >
+              데이트
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePurpose === 'company_dinner' }"
+              @click="setPurposeAndSearch('company_dinner')"
+            >
+              회식
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activeMood === 'cafe' }"
+              @click="setMoodAndSearch('cafe')"
+            >
+              카페
+            </button>
+          </div>
+        </div>
+
+        <!-- 인원 탭 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'person'">
+          <div class="categories-row">
+            <button
+              v-for="count in peopleCountOptions"
+              :key="count.value"
+              :class="['category-btn', { active: activePeopleNum === count.value }]"
+              @click="setPeopleCountAndSearch(count.value)"
+            >
+              {{ count.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 분위기 탭 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'analysis'">
+          <div class="categories-row">
+            <button
+              v-for="mood in moodOptions"
+              :key="mood.value"
+              :class="['category-btn', { active: activeMood === mood.value }]"
+              @click="setMoodAndSearch(mood.value)"
+            >
+              {{ mood.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 가격대 탭 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'price'">
+          <div class="categories-row">
+            <button
+              class="category-btn"
+              :class="{ active: activePrice === 'low' }"
+              @click="setPriceAndSearch('low')"
+            >
+              저렴한
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePrice === 'medium' }"
+              @click="setPriceAndSearch('medium')"
+            >
+              적당한
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activePrice === 'high' }"
+              @click="setPriceAndSearch('high')"
+            >
+              고급
+            </button>
+          </div>
+        </div>
+
+        <!-- 거리 탭 내용 -->
+        <div class="categories-container" v-if="activeMainTab === 'distance'">
+          <div class="categories-row">
+            <button
+              class="category-btn"
+              :class="{ active: activeDistance === 'near' }"
+              @click="setDistanceAndSearch('near')"
+            >
+              100m 이내
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activeDistance === 'medium' }"
+              @click="setDistanceAndSearch('medium')"
+            >
+              500m 이내
+            </button>
+            <button
+              class="category-btn"
+              :class="{ active: activeDistance === 'far' }"
+              @click="setDistanceAndSearch('far')"
+            >
+              1km 이내
+            </button>
+          </div>
+        </div>
+        
+        <!-- 필터 적용 버튼 - 필터가 열려있을 때만 표시 -->
+        <div class="filter-apply-btn">
+          <button class="apply-btn" @click="searchPlaces">필터 적용하기</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -183,17 +213,19 @@ let userMarker = null;
 let infoWindow = null;
 let mapMoveTimer = null;
 
+// 탭 관련 상태 추가
+const activeMainTab = ref('list');
+
 // 검색 및 필터 관련 상태
 const searchKeyword = ref("");
 const activeCategory = ref(null);
-// const activeTheme = ref("popular"); // 인기있는을 기본값으로 설정
 const isLoading = ref(false);
 const currentRecommendation = ref(null);
 const searchResults = ref([]);
 
 const locationName = ref("");
 
-// 새로 추가된 필터 상태
+// 필터 상태
 const activeGender = ref(null);
 const activeAge = ref(null);
 const activeJob = ref(null);
@@ -201,6 +233,8 @@ const activePurpose = ref(null);
 const activePeopleNum = ref(null);
 const activeMood = ref(null);
 const activeSituation = ref(null);
+const activePrice = ref(null);
+const activeDistance = ref(null);
 
 // 음식 카테고리 목록 - 네이버 지역 API 검색용 키워드 매핑
 const foodCategories = [
@@ -210,7 +244,7 @@ const foodCategories = [
   { label: "양식", value: "western", keyword: "양식" },
 ];
 
-// 새로 추가된 카테고리 옵션들
+// 카테고리 옵션들
 const genderOptions = [
   { label: "남", value: "male" },
   { label: "여", value: "female" },
@@ -239,6 +273,7 @@ const purposeOptions = [
   { label: "가족모임", value: "family" },
   { label: "일상식사", value: "daily" },
   { label: "영업", value: "sales" },
+  { label: "데이트", value: "date" },
 ];
 
 const peopleCountOptions = [
@@ -267,17 +302,10 @@ const situationOptions = [
   { label: "프랜차이즈", value: "franchise" },
 ];
 
-// 테마 옵션 목록 - 네이버 지역 API 검색용 키워드 매핑
-// const themeOptions = [
-//   { label: "가볍게", value: "light", keyword: "가벼운" },
-//   { label: "푸짐하게", value: "hearty", keyword: "푸짐한" },
-//   { label: "인기있는", value: "popular", keyword: "인기있는" },
-// ];
-
 // 스토어에서 가져오는 값들
 const userLocation = computed(() => store.getters["map/userLocation"]);
 
-// 새로 추가된 필터 설정 함수들
+// 필터 설정 함수들
 const setGenderAndSearch = (gender) => {
   activeGender.value = gender;
   // searchPlaces();
@@ -311,6 +339,24 @@ const setMoodAndSearch = (mood) => {
 const setSituationAndSearch = (situation) => {
   activeSituation.value = situation;
   // searchPlaces();
+};
+
+const setPriceAndSearch = (price) => {
+  activePrice.value = price;
+  // searchPlaces();
+};
+
+const setDistanceAndSearch = (distance) => {
+  activeDistance.value = distance;
+  // searchPlaces();
+};
+
+// 필터 토글 상태
+const showFilters = ref(false);
+
+// 필터 토글 함수
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value;
 };
 
 onMounted(() => {
@@ -646,12 +692,6 @@ const setCategoryAndSearch = (category) => {
   // searchPlaces();
 };
 
-// 테마 설정 및 검색
-// const setThemeAndSearch = (theme) => {
-//   activeTheme.value = theme;
-//   searchPlaces();
-// };
-
 // 사용자 위치 주변 장소 검색
 const searchNearbyPlaces = () => {
   if (!userLocation.value) {
@@ -661,58 +701,6 @@ const searchNearbyPlaces = () => {
 
   searchNaverPlaces();
 };
-
-// 매장 추천 표시
-// const showRecommendations = () => {
-//   if (!userLocation.value) {
-//     getUserLocation();
-//     return;
-//   }
-
-  // 테마 키워드 가져오기
-  // const themeObj = themeOptions.find(
-  //   (theme) => theme.value === activeTheme.value
-  // );
-  // const themeKeyword = themeObj ? themeObj.keyword : "";
-
-  // 현재 위치 주변 추천 맛집 검색
-  // const query = themeKeyword;
-  // const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
-
-  // searchNaverPlaces(query, coords);
-// };
-
-// 특정 범위 내 검색
-// const filterByDistance = () => {
-//   if (!userLocation.value) {
-//     getUserLocation();
-//     return;
-//   }
-
-  // 카테고리 키워드 가져오기
-  // const categoryObj = foodCategories.find(
-  //   (cat) => cat.value === activeCategory.value
-  // );
-  // const categoryKeyword = categoryObj ? categoryObj.keyword : "";
-
-  // 현재 위치 주변 1km 내 식당 검색
-  // const query = categoryKeyword;
-  // const coords = `${userLocation.value.lng},${userLocation.value.lat}`; // 경도,위도 순서
-
-  // 지도에 1km 반경 표시
-  // if (map && window.naver) {
-  //   const userPos = new window.naver.maps.LatLng(
-  //     userLocation.value.lat,
-  //     userLocation.value.lng
-  //   );
-  //   map.setCenter(userPos);
-
-    // 적절한 줌 레벨 설정 (대략 1km 반경이 보이게)
-  //   map.setZoom(14);
-  // }
-
-  // searchNaverPlaces(query, coords, 1000); // 1000m = 1km
-// };
 
 // 검색창 검색
 const searchPlaces = () => {
@@ -752,6 +740,8 @@ const searchNaverPlaces = async () => {
           purpose: activePurpose.value || null,
           peopleNum: activePeopleNum.value || null,
           atmosphere: activeMood.value || null,
+          priceRange: activePrice.value || null,
+          distance: activeDistance.value || null,
           onSale: activeSituation.value === 'sale' ? true : null,
           franchise: activeSituation.value === 'franchise' ? true : null,
         };
@@ -876,6 +866,7 @@ const createMarkerContent = (title, category, index) => {
 const showInfoWindow = (place, marker) => {
   if (!map || !window.naver || !infoWindow) return;
 
+
   const content = `
     <div class="info-window">
       <div class="info-title">${place.title}</div>
@@ -978,7 +969,6 @@ const toRad = (value) => {
 const resetMapAndSearch = () => {
   searchKeyword.value = "";
 
-
   // 현재 위치 기준으로 지도 초기화
   centerToMyLocation();
 
@@ -1003,14 +993,6 @@ const openNaverMap = (place) => {
 const goToMyPage = () => {
   router.push({ name: "MyPage" });
 };
-
-// 필터 토글 상태
-const showFilters = ref(false);
-
-// 필터 토글 함수
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value;
-};
 </script>
 
 <style scoped>
@@ -1019,6 +1001,9 @@ const toggleFilters = () => {
   flex-direction: column;
   height: 100vh;
   background-color: #f8f9fa;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
 }
 
 /* 검색 영역 스타일 */
@@ -1067,43 +1052,153 @@ const toggleFilters = () => {
   justify-content: center;
 }
 
-/* 카테고리 필터 영역 */
-.filter-categories {
-  margin-top: 5px;
+/* 지도 영역 - 높이를 3/4로 줄임 */
+.map-container {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 65vh; /* 3/4 정도로 높이 조정 */
+  z-index: 1;
 }
 
-.category-section {
-  margin-bottom: 8px;
+#map {
+  width: 100%;
+  height: 100%;
+  background-color: #f1f3f5; /* 지도 로드 전 배경색 */
 }
 
-.category-title {
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 4px;
-  padding-left: 2px;
+/* 하단 탭 영역 스타일 */
+.bottom-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  z-index: 20;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.categories-row {
+.tab-header {
   display: flex;
+  align-items: center;
+  padding: 10px 5px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.tab-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  background: none;
+  border: none;
+  border-radius: 0;
+  position: relative;
+  text-align: center;
+}
+
+.tab-btn.active {
+  color: #ff5722;
+  font-weight: 600;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 20%;
+  width: 60%;
+  height: 3px;
+  background-color: #ff5722;
+  border-radius: 3px;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.filter-toggle i {
+  color: #ff5722;
+  font-size: 14px;
+}
+
+/* 카테고리 영역 스타일 */
+.categories-container {
+  padding: 10px 15px;
   overflow-x: auto;
-  padding-bottom: 5px;
+  white-space: nowrap;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
 }
 
-.categories-row::-webkit-scrollbar {
+.categories-container::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.category-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+  padding: 0;
+}
+
+.category-block.active {
+  background-color: #fff4f0;
+  color: #ff5722;
+  border: 1px solid #ff5722;
+}
+
+.categories-row {
+  display: flex;
+  padding-bottom: 5px;
+}
+
 .category-btn {
-  padding: 6px 14px;
+  padding: 8px 16px;
   margin-right: 8px;
   border-radius: 20px;
   border: 1px solid #dde2e6;
   background-color: white;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
   color: #555;
+  flex-shrink: 0;
 }
 
 .category-btn.active {
@@ -1113,125 +1208,23 @@ const toggleFilters = () => {
   font-weight: 500;
 }
 
-/* 지도 영역 */
-.map-container {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  height: 100%;
-}
-
-#map {
-  width: 100%;
-  height: 100%;
-  background-color: #f1f3f5; /* 지도 로드 전 배경색 */
-}
-
-/* 지도 컨트롤 버튼 */
-.map-controls {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  z-index: 10;
-}
-
-.map-btn {
-  display: flex;
-  align-items: center;
-  background-color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 10px 15px;
-  margin: 0 5px;
-  font-size: 14px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  font-weight: 500;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.map-btn:hover {
-  background-color: #f9f9f9;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-.map-btn i {
-  margin-right: 5px;
-  font-size: 14px;
-}
-
-.btn-text {
-  margin-left: 3px;
-  display: inline-block;
-}
-
-.location-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.location-btn i {
-  margin: 0;
-  font-size: 16px;
-  color: #ff5722;
-}
-
-.reset-btn,
-.distance-btn,
-.recommend-btn {
-  min-width: 80px; /* 버튼 최소 너비 설정 */
-  justify-content: center;
-}
-
-/* 하단 액션 바 */
-.bottom-actions {
-  display: flex;
-  padding: 12px 15px;
-  background-color: white;
-  border-top: 1px solid #f1f3f5;
-  align-items: center;
-  z-index: 5;
-}
-
-.action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #dde2e6;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.action-btn i {
-  color: #ff5722;
-  font-size: 16px;
-}
-
-.recommendation {
-  flex: 1;
+/* 필터 적용 버튼 */
+.filter-apply-btn {
+  padding: 15px;
   text-align: center;
-  color: #4285f4;
-  font-weight: bold;
-  font-size: 14px;
+  border-top: 1px solid #f1f3f5;
 }
 
-.page-indicator {
-  color: #868e96;
-  font-size: 14px;
-  cursor: pointer;
+.apply-btn {
+  width: 100%;
+  padding: 14px 0;
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(255, 87, 34, 0.3);
 }
 
 /* 사용자 위치 마커 스타일 */
@@ -1338,15 +1331,5 @@ const toggleFilters = () => {
   font-size: 14px;
   color: #666;
   margin: 5px 0;
-}
-
-/* 검색 및 필터 영역 수정 */
-.search-bar {
-  padding: 10px 15px;
-  background-color: white;
-  z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-height: 200px; /* 최대 높이 설정 */
-  overflow-y: auto; /* 세로 스크롤 추가 */
 }
 </style>
