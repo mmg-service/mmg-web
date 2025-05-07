@@ -45,7 +45,8 @@
             :to="{
               path: '/order',
               query: {
-                userLocation: userLocation,
+                lng: userLocation.lng,
+                lat: userLocation.lat,
                 name: currentRecommendation.name
               },
             }"
@@ -86,7 +87,7 @@ const props = defineProps({
   isLoading: { type: Boolean, required: true },
   currentRecommendation: { type: Object, default: null },
   openNaverMap: { type: Function, required: true },
-  userLocation: { type: Object, required: true }
+  userLocation: { type: String, required: true }
 });
 
 </script>
