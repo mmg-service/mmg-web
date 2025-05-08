@@ -1,0 +1,2254 @@
+1. 논리 아키텍처
+@startuml
+!theme mono
+
+title MMG 서비스 - 논리 아키텍처
+
+' 패키지 정의
+package "클라이언트 계층" {
+    [모바일 앱] as mobileApp
+    [웹 앱] as webApp
+}
+
+package "게이트웨이 계층" {
+    [API Gateway] as apiGateway
+    note right of apiGateway
+        - 라우팅
+        - 요청 분배
+        - 인증 토큰 검증
+    end note
+}
+
+package "회원 서비스" {
+    [인증 컨트롤러] as authController
+    [회원 서비스] as memberService
+    [회원 저장소] as memberRepository
+    
+    note right of authController
+        - 로그인/로그아웃 처리
+        - 인증 토큰 관리
+        - 사용자 프로필/취향 관리
+    end note
+}
+
+package "추천 서비스" {
+    [추천 컨트롤러] as recommendController
+    [추천 서비스] as recommendService
+    [추천 저장소] as recommendRepository
+    
+    note right of recommendController
+        - 위치 기반 추천
+        - 상황별 추천(날씨, 시간대)
+        - 맞춤형 추천
+        - 구독 서비스 목록 제공
+    end note
+}
+
+package "리뷰 서비스" {
+    [리뷰 컨트롤러] as reviewController
+    [리뷰 서비스] as reviewService
+    [리뷰 저장소] as reviewRepository
+    
+    note right of reviewController
+        - 리뷰 작성/조회/수정/삭제
+        - 리뷰 요약 및 분석
+        - 키워드 분석
+    end note
+}
+
+package "공통 모듈" {
+    [예외 처리] as exceptionHandler
+    [응답 구성] as responseBuilder
+    [유틸리티] as utilities
+    
+    note right of utilities
+        - 날짜 변환
+        - JSON 처리
+        - 보안 유틸
+        - 검증 유틸
+    end note
+}
+
+package "데이터 계층" {
+    database "회원 DB" as memberDB
+    database "추천 DB" as recommendDB
+    database "리뷰 DB" as reviewDB
+}
+
+' 외부 서비스
+cloud "외부 서비스" {
+    [Google Places API] as googleAPI
+    [OpenWeatherMap API] as weatherAPI
+    [Naver Map API] as naverAPI
+    [Claude API] as claudeAPI
+}
+
+' 관계 정의
+mobileApp --> apiGateway : 1. API 요청
+webApp --> apiGateway : 1. API 요청
+
+apiGateway --> authController : 2. 인증 요청
+apiGateway --> recommendController : 2. 추천 관련 요청
+apiGateway --> reviewController : 2. 리뷰 관련 요청
+
+authController --> memberService : 3. 인증 처리
+memberService --> memberRepository : 4. 회원 정보 조회/저장
+memberRepository --> memberDB : 5. 데이터 접근
+
+recommendController --> recommendService : 3. 추천 처리
+recommendService --> recommendRepository : 4. 추천 정보 조회
+recommendRepository --> recommendDB : 5. 데이터 접근
+recommendService --> naverAPI : 6. 위치 정보 요청
+recommendService --> weatherAPI : 6. 날씨 정보 요청
+recommendService --> claudeAPI : 6. AI 추천 요청
+
+reviewController --> reviewService : 3. 리뷰 처리
+reviewService --> reviewRepository : 4. 리뷰 정보 조회/저장
+reviewRepository --> reviewDB : 5. 데이터 접근
+reviewService --> googleAPI : 6. 장소 리뷰 요청
+reviewService --> claudeAPI : 6. 리뷰 분석 요청
+
+' 서비스 간 통신
+memberService ..> recommendService : 취향 정보 공유
+recommendService ..> reviewService : 평점 정보 활용
+reviewService ..> recommendService : 리뷰 데이터 활용
+
+' 공통 모듈 의존성
+authController --> exceptionHandler
+recommendController --> exceptionHandler
+reviewController --> exceptionHandler
+
+authController --> responseBuilder
+recommendController --> responseBuilder 
+reviewController --> responseBuilder
+
+memberService --> utilities
+recommendService --> utilities
+reviewService --> utilities
+
+' 주요 사용자 시나리오
+note right of mobileApp
+  주요 사용자 시나리오:
+  1. 회원가입/로그인
+  2. 위치 기반 음식점 추천 받기
+  3. 상황별(날씨, 시간대) 추천 받기
+  4. 맞춤형 추천 받기
+  5. 음식점 리뷰 작성/조회
+  6. 음식점 리뷰 요약 확인
+end note
+
+@enduml
+
+2. 외부 시퀀스 설계서
+@startuml
+!theme mono
+title MMG 서비스 - 외부 시퀀스 다이어그램
+
+actor Client
+participant APIGateway
+participant "회원 서비스\n(Member)" as MemberService
+participant "추천 서비스\n(Recommend)" as RecommendService
+participant "리뷰 서비스\n(Review)" as ReviewService
+
+' 회원 서비스 호출
+Client -> APIGateway: 회원가입 요청\nPOST /api/members/auth/signup
+APIGateway -> MemberService: 회원가입 요청 전달\nPOST /api/members/auth/signup
+MemberService --> APIGateway: 회원가입 결과 반환
+APIGateway --> Client: 200 Created, 토큰 및 사용자 ID
+
+Client -> APIGateway: 로그인 요청\nPOST /api/members/auth/login
+APIGateway -> MemberService: 로그인 요청 전달\nPOST /api/members/auth/login
+MemberService --> APIGateway: 로그인 결과 반환(토큰)
+APIGateway --> Client: 200 OK, 토큰 정보
+
+Client -> APIGateway: 로그아웃 요청\nPOST /api/members/auth/logout
+APIGateway -> MemberService: 로그아웃 요청 전달\nPOST /api/members/auth/logout
+MemberService --> APIGateway: 로그아웃 결과 반환
+APIGateway --> Client: 200 OK, 성공 메시지
+
+Client -> APIGateway: 프로필 조회 요청\nGET /api/members/profiles/{id}
+APIGateway -> MemberService: 프로필 조회 요청 전달\nGET /api/members/profiles/{id}
+MemberService --> APIGateway: 프로필 정보 반환
+APIGateway --> Client: 200 OK, 프로필 정보
+
+Client -> APIGateway: 취향 정보 조회 요청\nGET /api/members/preferences
+APIGateway -> MemberService: 취향 정보 조회 요청 전달\nGET /api/members/preferences
+MemberService --> APIGateway: 취향 정보 반환
+APIGateway --> Client: 200 OK, 취향 정보
+
+' 추천 서비스 호출
+Client -> APIGateway: 주변 음식점 추천 요청\nGET /api/recommendations/nearby
+APIGateway -> RecommendService: 주변 음식점 추천 요청 전달\nGET /api/recommendations/nearby
+RecommendService --> APIGateway: 추천 음식점 목록 반환
+APIGateway --> Client: 200 OK, 추천 음식점 목록
+
+Client -> APIGateway: 날씨 기반 추천 요청\nGET /api/recommendations/weather
+APIGateway -> RecommendService: 날씨 기반 추천 요청 전달\nGET /api/recommendations/weather
+RecommendService --> APIGateway: 날씨 기반 추천 결과 반환
+APIGateway --> Client: 200 OK, 날씨 기반 추천 결과
+
+Client -> APIGateway: 시간대별 추천 요청\nGET /api/recommendations/time
+APIGateway -> RecommendService: 시간대별 추천 요청 전달\nGET /api/recommendations/time
+RecommendService --> APIGateway: 시간대별 추천 결과 반환
+APIGateway --> Client: 200 OK, 시간대별 추천 결과
+
+Client -> APIGateway: 맞춤형 추천 요청\nGET /api/recommendations/personalized
+APIGateway -> RecommendService: 맞춤형 추천 요청 전달\nGET /api/recommendations/personalized
+RecommendService --> APIGateway: 맞춤형 추천 결과 반환
+APIGateway --> Client: 200 OK, 맞춤형 추천 결과
+
+Client -> APIGateway: 음식점 메뉴 정보 조회\nGET /api/recommendations/ordering
+APIGateway -> RecommendService: 음식점 메뉴 정보 조회 요청 전달\nGET /api/recommendations/ordering
+RecommendService --> APIGateway: 음식점 메뉴 정보 반환
+APIGateway --> Client: 200 OK, 음식점 메뉴 정보
+
+' 리뷰 서비스 호출
+Client -> APIGateway: 리뷰 리스트 조회 요청\nGET /api/reviews?restaurantId={id}
+APIGateway -> ReviewService: 리뷰 리스트 조회 요청 전달\nGET /api/reviews?restaurantId={id}
+ReviewService --> APIGateway: 리뷰 리스트 반환
+APIGateway --> Client: 200 OK, 리뷰 리스트
+
+Client -> APIGateway: 리뷰 작성 요청\nPOST /api/reviews
+APIGateway -> ReviewService: 리뷰 작성 요청 전달\nPOST /api/reviews
+ReviewService --> APIGateway: 리뷰 작성 결과 반환
+APIGateway --> Client: 201 Created, 작성된 리뷰 정보
+
+Client -> APIGateway: 리뷰 수정 요청\nPUT /api/reviews/{id}
+APIGateway -> ReviewService: 리뷰 수정 요청 전달\nPUT /api/reviews/{id}
+ReviewService --> APIGateway: 리뷰 수정 결과 반환
+APIGateway --> Client: 200 OK, 수정된 리뷰 정보
+
+Client -> APIGateway: 리뷰 삭제 요청\nDELETE /api/reviews/{id}
+APIGateway -> ReviewService: 리뷰 삭제 요청 전달\nDELETE /api/reviews/{id}
+ReviewService --> APIGateway: 리뷰 삭제 결과 반환
+APIGateway --> Client: 204 No Content
+
+Client -> APIGateway: 리뷰 요약 조회 요청\nGET /api/reviews/summary?restaurantId={id}
+APIGateway -> ReviewService: 리뷰 요약 조회 요청 전달\nGET /api/reviews/summary?restaurantId={id}
+ReviewService --> APIGateway: 리뷰 요약 정보 반환
+APIGateway --> Client: 200 OK, 리뷰 요약 정보
+
+Client -> APIGateway: 리뷰 AI 생성 요청\nGET /api/reviews/claude
+APIGateway -> ReviewService: 리뷰 AI 생성 요청 전달\nGET /api/reviews/claude
+ReviewService --> APIGateway: 생성된 리뷰 반환
+APIGateway --> Client: 200 OK, 생성된 리뷰
+
+' 마이크로서비스 간 통신
+MemberService -> RecommendService: 사용자 취향 정보 요청
+RecommendService --> MemberService: 취향 정보 반환
+
+RecommendService -> ReviewService: 리뷰 요약 정보 요청
+ReviewService --> RecommendService: 리뷰 요약 정보 반환
+
+@enduml
+
+3. 서비스별 설계서
+3.1 API 설계서
+서비스|HTTP Method|URL Pattern|설명|인증 필요|요청 파라미터|응답 형식
+회원|POST|/api/members/auth/signup|회원가입|아니오|username, password|SignupResponse(userId, token)
+회원|POST|/api/members/auth/login|로그인|아니오|username, password|TokenResponse(accessToken, refreshToken, expiresIn, userRole)
+회원|POST|/api/members/auth/logout|로그아웃|예|token|LogoutResponse(message)
+회원|POST|/api/members/auth/refresh|토큰 갱신|아니오|refreshToken|TokenResponse(accessToken, refreshToken, expiresIn, userRole)
+회원|GET|/api/members/profiles/{id}|프로필 조회|예|id(path)|ProfileResponse(userId, name, email, phoneNumber, preferences)
+회원|PUT|/api/members/profiles/{id}|프로필 수정|예|id(path), name, email, phoneNumber|ProfileResponse(userId, name, email, phoneNumber, preferences)
+회원|GET|/api/members/preferences|취향 조회|예|없음|PreferenceResponse(foodCategories, avoidFoods, maxPrice, preferredLocations)
+회원|PUT|/api/members/preferences|취향 수정|예|foodCategories, avoidFoods, maxPrice, preferredLocations|PreferenceResponse(foodCategories, avoidFoods, maxPrice, preferredLocations)
+추천|GET|/api/recommendations/nearby|주변 음식점 추천|아니오|query, latitude, longitude, category, keyword, display, start, sort, purpose, peopleNum, atmosphere, onSale, franchise|NaverSearchResponse(lastBuildDate, total, start, display, items, claudeItem)
+추천|GET|/api/recommendations/weather|날씨 기반 추천|아니오|latitude, longitude|RecommendationResponse(restaurants, menuSuggestions, recommendationReason)
+추천|GET|/api/recommendations/time|시간대별 추천|아니오|time|RecommendationResponse(restaurants, menuSuggestions, recommendationReason)
+추천|GET|/api/recommendations/personalized|맞춤형 추천|예|없음|RecommendationResponse(restaurants, menuSuggestions, recommendationReason)
+추천|GET|/api/recommendations/occasion|상황별 추천|아니오|occasionType, participants, budget|RecommendationResponse(restaurants, menuSuggestions, recommendationReason)
+추천|GET|/api/recommendations/ordering|음식점 메뉴 조회|아니오|title|MenuInfoResponse(menuList)
+추천|POST|/api/recommendations/claude|Claude AI 추천|아니오|userPrompt|ClaudeResponse(content)
+추천|GET|/api/restaurants/{id}|음식점 상세 조회|아니오|id(path)|RestaurantDetailResponse(id, name, address, category, ...)
+추천|GET|/api/restaurants/categories|카테고리 목록 조회|아니오|없음|List<CategoryResponse>(id, name, imageUrl)
+추천|POST|/api/stores/nearby|주변 매장 검색|아니오|latitude, longitude, keyword, radius|List<Store>
+리뷰|GET|/api/reviews|리뷰 목록 조회|아니오|restaurantId, page, size, sort|Page<ReviewResponse>
+리뷰|POST|/api/reviews|리뷰 작성|예|userId, restaurantId, content, rating, visitDate, photoUrls|ReviewResponse
+리뷰|PUT|/api/reviews/{id}|리뷰 수정|예|id(path), userId, content, rating, visitDate, photoUrls|ReviewResponse
+리뷰|DELETE|/api/reviews/{id}|리뷰 삭제|예|id(path), userId|없음
+리뷰|GET|/api/reviews/summary|리뷰 요약 조회|아니오|restaurantId|ReviewSummaryResponse(avgRating, reviewCount, keywordSummary)
+리뷰|GET|/api/reviews/claude|AI 리뷰 생성|아니오|review|ClaudeResponse(content)
+리뷰|GET|/api/reviews/reviewSummary|리뷰 요약 생성|아니오|query, latitude, longitude|ClaudeResponse(content)
+
+3.2 내부 시퀀스 설계서 - 회원 서비스
+@startuml
+!theme mono
+title 회원 서비스 - 내부 시퀀스 다이어그램 (로그인)
+
+actor Client
+participant "API Gateway" as APIGateway
+participant "AuthController" as AuthController
+participant "AuthService" as AuthService
+participant "MemberRepository" as MemberRepository
+participant "JwtTokenProvider" as JwtTokenProvider
+database "회원 DB" as MemberDB
+
+' 로그인 흐름
+Client -> APIGateway: POST /api/members/auth/login
+activate APIGateway
+APIGateway -> AuthController: 로그인 요청
+activate AuthController
+AuthController -> AuthService: login(loginRequest)
+activate AuthService
+
+' 회원 조회
+AuthService -> MemberRepository: findByUsername(userId)
+activate MemberRepository
+MemberRepository -> MemberDB: 회원 조회
+MemberDB --> MemberRepository: 회원 정보 반환
+deactivate MemberRepository
+MemberRepository --> AuthService: MemberEntity 반환
+
+' 패스워드 검증
+AuthService -> AuthService: 패스워드 검증
+note right of AuthService
+  암호화된 패스워드와
+  입력된 패스워드 비교
+end note
+
+' 토큰 생성
+AuthService -> JwtTokenProvider: createToken(member, authorities)
+activate JwtTokenProvider
+JwtTokenProvider -> JwtTokenProvider: Access Token 생성
+JwtTokenProvider -> JwtTokenProvider: Refresh Token 생성
+JwtTokenProvider --> AuthService: TokenResponse 반환
+deactivate JwtTokenProvider
+
+AuthService --> AuthController: TokenResponse 반환
+deactivate AuthService
+AuthController --> APIGateway: TokenResponse 반환
+deactivate AuthController
+APIGateway --> Client: 200 OK, TokenResponse
+deactivate APIGateway
+
+@enduml
+
+3.3 내부 시퀀스 설계서 - 추천 서비스
+@startuml
+!theme mono
+title 추천 서비스 - 내부 시퀀스 다이어그램 (위치 기반 추천)
+
+actor Client
+participant "API Gateway" as APIGateway
+participant "RecommendController" as RecommendController
+participant "LocationBasedRecommendService" as LocationService
+participant "LocationService" as NaverLocationService
+participant "NaverApiService" as NaverApiService
+participant "ClaudeService" as ClaudeService
+participant "NaverMapAPI" as NaverMapAPI
+participant "ClaudeAPI" as ClaudeAPI
+database "매장 DB" as StoreDB
+
+' 위치 기반 추천 흐름
+Client -> APIGateway: GET /api/recommendations/nearby
+activate APIGateway
+APIGateway -> RecommendController: 주변 음식점 추천 요청
+activate RecommendController
+RecommendController -> LocationService: findNearbyRestaurants(params)
+activate LocationService
+
+' 위치 정보 조회
+LocationService -> NaverLocationService: getReverseGeocode(longitude, latitude)
+activate NaverLocationService
+NaverLocationService -> NaverMapAPI: 위치 정보 요청
+NaverMapAPI --> NaverLocationService: 위치 정보 반환
+NaverLocationService --> LocationService: 위치 정보(지역명) 반환
+deactivate NaverLocationService
+
+' 네이버 검색 API 호출
+LocationService -> NaverApiService: searchNearbyStores(requestDto)
+activate NaverApiService
+NaverApiService -> NaverMapAPI: 검색 요청
+NaverMapAPI --> NaverApiService: 검색 결과 반환
+NaverApiService -> StoreDB: 검색 결과 저장
+NaverApiService --> LocationService: 검색된 매장 목록 반환
+deactivate NaverApiService
+
+' Claude AI 추천
+LocationService -> ClaudeService: getClaudeAnswer(request, instruction)
+activate ClaudeService
+ClaudeService -> ClaudeAPI: AI 추천 요청
+ClaudeAPI --> ClaudeService: AI 추천 결과 반환
+ClaudeService --> LocationService: 추천 결과 반환
+deactivate ClaudeService
+
+LocationService --> RecommendController: NaverSearchResponse 반환
+deactivate LocationService
+RecommendController --> APIGateway: 추천 결과 반환
+deactivate RecommendController
+APIGateway --> Client: 200 OK, 추천 결과
+deactivate APIGateway
+
+@enduml
+
+3.4 내부 시퀀스 설계서 - 리뷰 서비스
+@startuml
+!theme mono
+title 리뷰 서비스 - 내부 시퀀스 다이어그램 (리뷰 작성)
+
+actor Client
+participant "API Gateway" as APIGateway
+participant "ReviewController" as ReviewController
+participant "ReviewService" as ReviewService
+participant "RestaurantRepository" as RestaurantRepository
+participant "KeywordAnalyzer" as KeywordAnalyzer
+participant "ReviewRepository" as ReviewRepository
+participant "ReviewImageRepository" as ImageRepository
+database "리뷰 DB" as ReviewDB
+
+' 리뷰 작성 흐름
+Client -> APIGateway: POST /api/reviews
+activate APIGateway
+APIGateway -> ReviewController: 리뷰 작성 요청
+activate ReviewController
+ReviewController -> ReviewService: createReview(request)
+activate ReviewService
+
+' 매장 존재 여부 확인
+ReviewService -> RestaurantRepository: findById(restaurantId)
+activate RestaurantRepository
+RestaurantRepository --> ReviewService: 매장 정보 반환
+deactivate RestaurantRepository
+
+' 키워드 분석
+ReviewService -> KeywordAnalyzer: analyzeKeywords(content)
+activate KeywordAnalyzer
+KeywordAnalyzer --> ReviewService: 분석된 키워드 목록 반환
+deactivate KeywordAnalyzer
+
+' 리뷰 저장
+ReviewService -> ReviewRepository: save(review)
+activate ReviewRepository
+ReviewRepository -> ReviewDB: 리뷰 저장
+ReviewDB --> ReviewRepository: 저장된 리뷰 ID 반환
+ReviewRepository --> ReviewService: 저장된 리뷰 정보 반환
+deactivate ReviewRepository
+
+' 이미지 처리 (있는 경우)
+alt 이미지가 있는 경우
+    ReviewService -> ImageRepository: processReviewImages(reviewId, imageUrls)
+    activate ImageRepository
+    ImageRepository -> ReviewDB: 이미지 정보 저장
+    ImageRepository --> ReviewService: 저장 완료
+    deactivate ImageRepository
+end
+
+' 매장 평점 업데이트
+ReviewService -> RestaurantRepository: updateRating(restaurantId)
+activate RestaurantRepository
+RestaurantRepository --> ReviewService: 업데이트 완료
+deactivate RestaurantRepository
+
+ReviewService --> ReviewController: ReviewResponse 반환
+deactivate ReviewService
+ReviewController --> APIGateway: 리뷰 작성 결과 반환
+deactivate ReviewController
+APIGateway --> Client: 201 Created, ReviewResponse
+deactivate APIGateway
+
+@enduml
+
+3.5 클래스 설계서 - 회원 서비스
+@startuml
+!theme mono
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+
+title 회원 서비스 - 클래스 다이어그램
+
+package "com.turtleship.mmg.member" {
+  package "biz" {
+    package "domain" {
+      class Member {
+        -id: Long
+        -username: String
+        -password: String
+        -name: String
+        -email: String
+        -phoneNumber: String
+        -roles: Set<Role>
+        -preferences: Preference
+        -createdAt: LocalDateTime
+        -updatedAt: LocalDateTime
+        +addRole(role: Role): void
+      }
+
+      class Preference {
+        -foodCategories: List<String>
+        -avoidFoods: List<String>
+        -maxPrice: Integer
+        -preferredLocations: List<String>
+        -updatedAt: LocalDateTime
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+    }
+
+    package "usecase" {
+      package "in" {
+        interface SignupUseCase {
+          +signup(request: SignupRequest): SignupResponse
+        }
+
+        interface LoginUseCase {
+          +login(request: LoginRequest): TokenResponse
+        }
+
+        interface LogoutUseCase {
+          +logout(request: LogoutRequest): LogoutResponse
+        }
+
+        interface RefreshTokenUseCase {
+          +refreshToken(request: RefreshTokenRequest): TokenResponse
+        }
+
+        interface GetProfileUseCase {
+          +getProfile(userId: String): ProfileResponse
+        }
+
+        interface UpdateProfileUseCase {
+          +updateProfile(userId: String, request: UpdateProfileRequest): ProfileResponse
+        }
+
+        interface GetPreferenceUseCase {
+          +getPreference(userId: String): PreferenceResponse
+        }
+
+        interface UpdatePreferenceUseCase {
+          +updatePreference(userId: String, request: UpdatePreferenceRequest): PreferenceResponse
+        }
+      }
+
+      package "out" {
+        interface MemberRepository {
+          +findByUsername(username: String): Optional<Member>
+          +save(member: Member): Member
+          +findById(id: Long): Optional<Member>
+        }
+
+        interface TokenRepository {
+          +saveToken(userId: String, token: String, tokenType: String, expiresAt: LocalDateTime): void
+          +findValidToken(userId: String, token: String, tokenType: String): Optional<String>
+          +invalidateToken(token: String): void
+        }
+      }
+    }
+
+    package "service" {
+      class AuthService {
+        -memberRepository: MemberRepository
+        -tokenRepository: TokenRepository
+        -passwordEncoder: PasswordEncoder
+        -jwtTokenProvider: JwtTokenProvider
+        +signup(request: SignupRequest): SignupResponse
+        +login(request: LoginRequest): TokenResponse
+        +logout(request: LogoutRequest): LogoutResponse
+        +refreshToken(request: RefreshTokenRequest): TokenResponse
+      }
+
+      class ProfileService {
+        -memberRepository: MemberRepository
+        +getProfile(userId: String): ProfileResponse
+        +updateProfile(userId: String, request: UpdateProfileRequest): ProfileResponse
+        -findMemberById(userId: String): Member
+      }
+
+      class PreferenceService {
+        -memberRepository: MemberRepository
+        +getPreference(userId: String): PreferenceResponse
+        +updatePreference(userId: String, request: UpdatePreferenceRequest): PreferenceResponse
+        -findMemberById(userId: String): Member
+      }
+    }
+  }
+
+  package "infra" {
+    package "controller" {
+      class AuthController {
+        -signupUseCase: SignupUseCase
+        -loginUseCase: LoginUseCase
+        -logoutUseCase: LogoutUseCase
+        -refreshTokenUseCase: RefreshTokenUseCase
+        +signup(request: SignupRequest): ResponseEntity<?>
+        +login(request: LoginRequest): ResponseEntity<?>
+        +logout(request: LogoutRequest): ResponseEntity<?>
+        +refreshToken(request: RefreshTokenRequest): ResponseEntity<?>
+      }
+
+      class ProfileController {
+        -getProfileUseCase: GetProfileUseCase
+        -updateProfileUseCase: UpdateProfileUseCase
+        +getProfile(id: String): ResponseEntity<?>
+        +updateProfile(id: String, request: UpdateProfileRequest): ResponseEntity<?>
+      }
+
+      class PreferenceController {
+        -getPreferenceUseCase: GetPreferenceUseCase
+        -updatePreferenceUseCase: UpdatePreferenceUseCase
+        +getPreference(): ResponseEntity<?>
+        +updatePreference(request: UpdatePreferenceRequest): ResponseEntity<?>
+      }
+    }
+
+    package "dto" {
+      class SignupRequest {
+        -username: String
+        -password: String
+      }
+
+      class SignupResponse {
+        -userId: String
+        -token: String
+      }
+
+      class LoginRequest {
+        -username: String
+        -password: String
+      }
+
+      class LogoutRequest {
+        -token: String
+      }
+
+      class LogoutResponse {
+        -message: String
+      }
+
+      class TokenResponse {
+        -accessToken: String
+        -refreshToken: String
+        -expiresIn: Long
+        -userRole: String
+      }
+
+      class RefreshTokenRequest {
+        -refreshToken: String
+      }
+
+      class ProfileResponse {
+        -userId: String
+        -name: String
+        -email: String
+        -phoneNumber: String
+        -preferences: PreferenceDTO
+      }
+
+      class UpdateProfileRequest {
+        -name: String
+        -email: String
+        -phoneNumber: String
+      }
+
+      class PreferenceResponse {
+        -foodCategories: List<String>
+        -avoidFoods: List<String>
+        -maxPrice: Integer
+        -preferredLocations: List<String>
+      }
+
+      class UpdatePreferenceRequest {
+        -foodCategories: List<String>
+        -avoidFoods: List<String>
+        -maxPrice: Integer
+        -preferredLocations: List<String>
+      }
+    }
+
+    package "gateway" {
+      class JwtTokenProvider {
+        -tokenRepository: TokenRepository
+        -secretKey: String
+        -accessTokenValidityInMilliseconds: long
+        -refreshTokenValidityInMilliseconds: long
+        +createToken(member: Member): TokenResponse
+        -generateToken(member: Member, tokenType: String, validityInMilliseconds: long): String
+        +validateToken(token: String): boolean
+        +getUsernameFromToken(token: String): String
+      }
+
+      package "repository" {
+        class JpaMemberRepository {
+          -memberJpaRepository: MemberJpaRepository
+          +findByUsername(username: String): Optional<Member>
+          +save(member: Member): Member
+          +findById(id: Long): Optional<Member>
+        }
+
+        class InMemoryTokenRepository {
+          -tokenCache: Map<String, TokenInfo>
+          +saveToken(userId: String, token: String, tokenType: String, expiresAt: LocalDateTime): void
+          +findValidToken(userId: String, token: String, tokenType: String): Optional<String>
+          +invalidateToken(token: String): void
+        }
+
+        interface MemberJpaRepository {
+          +findByUsername(username: String): Optional<MemberEntity>
+          +findById(id: Long): Optional<MemberEntity>
+          +save(entity: MemberEntity): MemberEntity
+        }
+      }
+
+      package "entity" {
+        class MemberEntity {
+          -id: Long
+          -username: String
+          -password: String
+          -name: String
+          -email: String
+          -phoneNumber: String
+          -roles: Set<Role>
+          -preferences: PreferenceEntity
+          -createdAt: LocalDateTime
+          -updatedAt: LocalDateTime
+          +toDomain(): Member
+          +fromDomain(member: Member): MemberEntity
+        }
+
+        class PreferenceEntity {
+          -id: Long
+          -member: MemberEntity
+          -foodCategories: String
+          -avoidFoods: String
+          -maxPrice: Integer
+          -preferredLocations: String
+          -updatedAt: LocalDateTime
+          +toDomain(): Preference
+          +fromDomain(preference: Preference): PreferenceEntity
+          -convertStringToList(str: String): List<String>
+          -convertListToString(list: List<String>): String
+        }
+      }
+    }
+
+    package "config" {
+      class SecurityConfig {
+        -allowedOrigins: String
+        -jwtSecret: String
+        +jwtAuthenticationFilter(): JwtAuthenticationFilter
+        +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+        +corsConfigurationSource(): CorsConfigurationSource
+        +passwordEncoder(): PasswordEncoder
+      }
+
+      class JwtAuthenticationFilter {
+        -secretKey: String
+        #doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+      }
+
+      class SwaggerConfig {
+        +openAPI(): OpenAPI
+      }
+    }
+  }
+}
+
+' 관계 정의
+AuthService ..|> SignupUseCase
+AuthService ..|> LoginUseCase
+AuthService ..|> LogoutUseCase
+AuthService ..|> RefreshTokenUseCase
+ProfileService ..|> GetProfileUseCase
+ProfileService ..|> UpdateProfileUseCase
+PreferenceService ..|> GetPreferenceUseCase
+PreferenceService ..|> UpdatePreferenceUseCase
+
+AuthService --> MemberRepository
+AuthService --> TokenRepository
+AuthService --> JwtTokenProvider
+ProfileService --> MemberRepository
+PreferenceService --> MemberRepository
+
+JpaMemberRepository ..|> MemberRepository
+InMemoryTokenRepository ..|> TokenRepository
+
+JpaMemberRepository --> MemberJpaRepository
+MemberJpaRepository --> MemberEntity
+MemberEntity --> PreferenceEntity
+
+AuthController --> SignupUseCase
+AuthController --> LoginUseCase
+AuthController --> LogoutUseCase
+AuthController --> RefreshTokenUseCase
+ProfileController --> GetProfileUseCase
+ProfileController --> UpdateProfileUseCase
+PreferenceController --> GetPreferenceUseCase
+PreferenceController --> UpdatePreferenceUseCase
+
+SecurityConfig --> JwtAuthenticationFilter
+
+@enduml
+
+3.6 클래스 설계서 - 추천 서비스
+@startuml
+!theme mono
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+
+title 추천 서비스 - 클래스 다이어그램
+
+package "com.turtleship.mmg.recommend" {
+  package "biz" {
+    package "domain" {
+      class Location {
+        -latitude: Double
+        -longitude: Double
+        +distanceTo(other: Location): Double
+      }
+
+      class Weather {
+        -temperature: Double
+        -condition: String
+        -humidity: Integer
+        -windSpeed: Double
+      }
+
+      class Restaurant {
+        -id: Long
+        -name: String
+        -address: String
+        -latitude: Double
+        -longitude: Double
+        -categoryId: Long
+        -phone: String
+        -businessHours: String
+        -description: String
+        -thumbnailUrl: String
+      }
+
+      class Category {
+        -id: Long
+        -name: String
+        -parentId: Long
+        -imageUrl: String
+      }
+
+      class Menu {
+        -id: Long
+        -restaurantId: Long
+        -name: String
+        -price: Integer
+        -description: String
+        -isSignature: Boolean
+        -thumbnailUrl: String
+        -categoryId: Long
+      }
+
+      class MenuItem {
+        -menuName: String
+        -price: Integer
+        -imageName: String
+      }
+
+      class Store {
+        -id: Long
+        -name: String
+        -category: String
+        -address: String
+        -roadAddress: String
+        -phone: String
+        -description: String
+        -x: Double
+        -y: Double
+        -distance: Double
+        -menuInfo: String
+      }
+
+      class RecommendationCriteria {
+        -occasionType: String
+        -participants: Integer
+        -budget: Integer
+        -weatherCondition: String
+        -timeOfDay: String
+        -userPreferences: Map<String, Object>
+      }
+    }
+
+    package "usecase" {
+      package "in" {
+        interface NearbyRestaurantUseCase {
+          +findNearbyRestaurants(query: String, latitude: String, longitude: String, category: String, keyword: String, display: Integer, start: Integer, sort: String, purpose: String, peopleNum: Integer, atmosphere: String, onSale: Boolean, franchise: Boolean): NaverSearchResponse
+        }
+
+        interface OccasionRecommendUseCase {
+          +recommendByOccasion(request: OccasionRecommendRequest): RecommendationResponse
+        }
+
+        interface WeatherBasedRecommendUseCase {
+          +recommendByWeather(latitude: Double, longitude: Double): RecommendationResponse
+        }
+
+        interface TimeBasedRecommendUseCase {
+          +recommendByTime(time: String): RecommendationResponse
+        }
+
+        interface PersonalizedRecommendUseCase {
+          +getPersonalizedRecommendation(userId: String): RecommendationResponse
+        }
+
+        interface RestaurantDetailUseCase {
+          +getRestaurantDetail(id: Long): RestaurantDetailResponse
+        }
+
+        interface CategoryUseCase {
+          +getAllCategories(): List<CategoryResponse>
+        }
+
+        interface ClaudeUseCase {
+          +getClaudeAnswer(request: ClaudeRequest, instruction: String): ClaudeResponse
+        }
+
+        interface OrderingMenuUseCase {
+          +getOrderingMenuList(title: String): MenuInfoResponse
+        }
+      }
+
+      package "out" {
+        interface RestaurantRepository {
+          +findById(id: Long): Optional<Restaurant>
+          +findByCategory(categoryId: Long): List<Restaurant>
+          +findByLocation(latitude: Double, longitude: Double, radius: Double): List<Restaurant>
+          +findPopular(location: String, category: String, page: Integer, size: Integer): Page<Restaurant>
+          +save(restaurant: Restaurant): Restaurant
+        }
+
+        interface CategoryRepository {
+          +findAll(): List<Category>
+          +findById(id: Long): Optional<Category>
+          +save(category: Category): Category
+        }
+
+        interface MenuRepository {
+          +findByRestaurantId(restaurantId: Long): List<Menu>
+          +findById(id: Long): Optional<Menu>
+          +findPopular(location: String, category: String): List<Menu>
+          +save(menu: Menu): Menu
+        }
+
+        interface WeatherService {
+          +getCurrentWeather(latitude: Double, longitude: Double): Weather
+        }
+
+        interface LocationRepository {
+          +getUserLastLocation(userId: String): Optional<Location>
+          +saveUserLocation(userId: String, latitude: Double, longitude: Double): void
+        }
+
+        interface UserPreferenceRepository {
+          +findByUserId(userId: String): Optional<Preference>
+        }
+      }
+    }
+
+    package "service" {
+      class ClaudeService {
+        -objectMapper: ObjectMapper
+        -webClientBuilder: WebClient.Builder
+        -webClient: WebClient
+        -apiKey: String
+        -apiUrl: String
+        -model: String
+        -getWebClient(): WebClient
+        +getClaudeAnswer(request: ClaudeRequest, instruction: String): ClaudeResponse
+      }
+
+      class ContextBasedRecommendService {
+        -restaurantRepository: RestaurantRepository
+        -menuRepository: MenuRepository
+        -categoryRepository: CategoryRepository
+        -weatherService: WeatherService
+        +recommendByOccasion(request: OccasionRecommendRequest): RecommendationResponse
+        +recommendByWeather(latitude: Double, longitude: Double): RecommendationResponse
+        +recommendByTime(time: String): RecommendationResponse
+        -createRecommendationResponse(...): RecommendationResponse
+      }
+
+      class LocationBasedRecommendService {
+        -claudeUseCase: ClaudeUseCase
+        -locationService: LocationService
+        -clientId: String
+        -clientSecret: String
+        +findNearbyRestaurants(...): NaverSearchResponse
+        -getParamInstruction(...): String
+        -getStringValue(map: Map<String, Object>, key: String): String
+        -getIntValue(map: Map<String, Object>, key: String): int
+        -calculateDistance(...): Double
+      }
+
+      class PersonalizedRecommendService {
+        -restaurantRepository: RestaurantRepository
+        -menuRepository: MenuRepository
+        -categoryRepository: CategoryRepository
+        -userPreferenceRepository: UserPreferenceRepository
+        -locationRepository: LocationRepository
+        -weatherService: WeatherService
+        +getPersonalizedRecommendation(userId: String): RecommendationResponse
+        -filterRestaurantsByPreference(...): List<Restaurant>
+        -generateRecommendationReason(...): String
+        -getTimeContext(currentTime: LocalTime): String
+        -calculateDistance(...): Double
+      }
+
+      class RestaurantService {
+        -restaurantRepository: RestaurantRepository
+        -menuRepository: MenuRepository
+        -categoryRepository: CategoryRepository
+        +getRestaurantDetail(id: Long): RestaurantDetailResponse
+        +getAllCategories(): List<CategoryResponse>
+        -generateRecommendationReason(...): String
+      }
+
+      class MenuOrderService {
+        -webClient: WebClient
+        -objectMapper: ObjectMapper
+        -apiKey: String
+        -apiUrl: String
+        -model: String
+        +getOrderingMenuList(title: String): MenuInfoResponse
+        -parseResponse(response: PerplexityResponse): MenuInfoResponse
+      }
+
+      class LocationService {
+        -clientId: String
+        -clientSecret: String
+        -restTemplate: RestTemplate
+        +getReverseGeocode(longitude: String, latitude: String): ResponseEntity<LocationResponse>
+        -extractAreaName(region: Map<String, Object>, areaKey: String): String
+      }
+
+      class OpenWeatherMapService {
+        -webClient: WebClient
+        -apiKey: String
+        -apiUrl: String
+        +getCurrentWeather(latitude: Double, longitude: Double): Weather
+      }
+    }
+  }
+
+  package "infra" {
+    package "controller" {
+      class RecommendController {
+        -nearbyRestaurantUseCase: NearbyRestaurantUseCase
+        -occasionRecommendUseCase: OccasionRecommendUseCase
+        -weatherBasedRecommendUseCase: WeatherBasedRecommendUseCase
+        -timeBasedRecommendUseCase: TimeBasedRecommendUseCase
+        -personalizedRecommendUseCase: PersonalizedRecommendUseCase
+        -orderingMenuUseCase: OrderingMenuUseCase
+        +getNearbyRestaurants(...): ResponseEntity<?>
+        +getOccasionRecommendation(request: OccasionRecommendRequest): ResponseEntity<?>
+        +getWeatherBasedRecommendation(...): ResponseEntity<?>
+        +getTimeBasedRecommendation(time: String): ResponseEntity<?>
+        +getPersonalizedRecommendation(): ResponseEntity<?>
+      }
+
+      class RestaurantController {
+        -restaurantDetailUseCase: RestaurantDetailUseCase
+        -categoryUseCase: CategoryUseCase
+        +getRestaurantDetail(id: Long): ResponseEntity<?>
+        +getAllCategories(): ResponseEntity<?>
+      }
+
+      class ClaudeController {
+        -claudeUseCase: ClaudeUseCase
+        +getClaudeAnswer(request: ClaudeRequest): ResponseEntity<?>
+        +getMenuAnswer(request: ClaudeRequest): ResponseEntity<?>
+      }
+
+      class StoreController {
+        -storeService: StoreService
+        +getNearbyStores(requestDto: SearchRequestDto): ResponseEntity<List<Store>>
+        +getStoresByCategory(category: String): ResponseEntity<List<Store>>
+        +getStoreDetail(storeId: Long): ResponseEntity<Store>
+      }
+    }
+
+    package "dto" {
+      class NaverSearchResponse {
+        -lastBuildDate: String
+        -total: int
+        -start: int
+        -display: int
+        -items: List<NaverSearchItem>
+        -claudeItem: String
+      }
+
+      class NaverSearchItem {
+        -title: String
+        -link: String
+        -category: String
+        -description: String
+        -telephone: String
+        -address: String
+        -roadAddress: String
+        -mapx: String
+        -mapy: String
+        -thumbnail: String
+      }
+
+      class OccasionRecommendRequest {
+        -occasionType: String
+        -participants: Integer
+        -budget: Integer
+      }
+
+      class RecommendationResponse {
+        -restaurants: List<RestaurantResponse>
+        -menuSuggestions: List<MenuResponse>
+        -recommendationReason: String
+      }
+
+      class RestaurantResponse {
+        -id: Long
+        -name: String
+        -address: String
+        -category: String
+        -latitude: Double
+        -longitude: Double
+        -distance: Double
+        -thumbnailUrl: String
+        -telephone: String
+        -description: String
+        -link: String
+        -roadAddress: String
+      }
+
+      class MenuResponse {
+        -id: Long
+        -name: String
+        -price: Integer
+        -description: String
+        -isSignature: Boolean
+        -thumbnailUrl: String
+      }
+
+      class RestaurantDetailResponse {
+        -id: Long
+        -name: String
+        -address: String
+        -latitude: Double
+        -longitude: Double
+        -category: String
+        -phone: String
+        -businessHours: String
+        -description: String
+        -thumbnailUrl: String
+        -menus: List<MenuResponse>
+        -recommendationReason: String
+      }
+
+      class CategoryResponse {
+        -id: Long
+        -name: String
+        -imageUrl: String
+      }
+
+      class ClaudeRequest {
+        -userPrompt: String
+        -systemPrompt: String
+      }
+
+      class ClaudeResponse {
+        -content: String
+        -rawResponse: JsonNode
+      }
+
+      class LocationResponse {
+        -fullAddress: String
+        -error: String
+      }
+
+      class MenuInfoResponse {
+        -menuList: List<MenuItem>
+        +addMenu(name: String, price: int, imgpath: String): void
+      }
+
+      class SearchRequestDto {
+        -keyword: String
+        -latitude: Double
+        -longitude: Double
+        -radius: Integer
+      }
+    }
+
+    package "gateway" {
+      package "repository" {
+        class JpaCategoryRepository {
+          -categoryJpaRepository: CategoryJpaRepository
+          +findAll(): List<Category>
+          +findById(id: Long): Optional<Category>
+          +save(category: Category): Category
+        }
+
+        class JpaMenuRepository {
+          -menuJpaRepository: MenuJpaRepository
+          +findByRestaurantId(restaurantId: Long): List<Menu>
+          +findById(id: Long): Optional<Menu>
+          +findPopular(location: String, category: String): List<Menu>
+          +save(menu: Menu): Menu
+        }
+
+        class JpaRestaurantRepository {
+          -restaurantJpaRepository: RestaurantJpaRepository
+          +findById(id: Long): Optional<Restaurant>
+          +findByCategory(categoryId: Long): List<Restaurant>
+          +findByLocation(latitude: Double, longitude: Double, radius: Double): List<Restaurant>
+          +findPopular(location: String, category: String, page: Integer, size: Integer): Page<Restaurant>
+          +save(restaurant: Restaurant): Restaurant
+        }
+
+        class JpaUserPreferenceRepository {
+          -restTemplate: RestTemplate
+          +findByUserId(userId: String): Optional<Preference>
+        }
+
+        class RedisLocationRepository {
+          -redisTemplate: RedisTemplate<String, Object>
+          +getUserLastLocation(userId: String): Optional<Location>
+          +saveUserLocation(userId: String, latitude: Double, longitude: Double): void
+        }
+
+        class PostgresLocationRepository {
+          -jpaUserLocationRepository: JpaUserLocationRepository
+          +getUserLastLocation(userId: String): Optional<Location>
+          +saveUserLocation(userId: String, latitude: Double, longitude: Double): void
+        }
+
+        interface CategoryJpaRepository {
+          +findAll(): List<CategoryEntity>
+          +findById(id: Long): Optional<CategoryEntity>
+          +findByName(name: String): CategoryEntity
+          +save(entity: CategoryEntity): CategoryEntity
+        }
+
+        interface MenuJpaRepository {
+          +findByRestaurantId(restaurantId: Long): List<MenuEntity>
+          +findById(id: Long): Optional<MenuEntity>
+          +findByIsSignature(isSignature: Boolean): List<MenuEntity>
+          +findByCategoryName(categoryName: String): List<MenuEntity>
+          +save(entity: MenuEntity): MenuEntity
+        }
+
+        interface RestaurantJpaRepository {
+          +findById(id: Long): Optional<RestaurantEntity>
+          +findByCategoryId(categoryId: Long): List<RestaurantEntity>
+          +findByCategoryName(categoryName: String, pageable: Pageable): Page<RestaurantEntity>
+          +findByLocationNear(latitude: Double, longitude: Double, distance: Double): List<RestaurantEntity>
+          +save(entity: RestaurantEntity): RestaurantEntity
+        }
+
+        interface JpaUserLocationRepository {
+          +findLatestByUserId(userId: String): Optional<UserLocationEntity>
+          +save(entity: UserLocationEntity): UserLocationEntity
+        }
+      }
+
+      package "entity" {
+        class CategoryEntity {
+          -id: Long
+          -name: String
+          -parentId: Long
+          -imageUrl: String
+          -createdAt: LocalDateTime
+          -updatedAt: LocalDateTime
+          +toDomain(): Category
+          +fromDomain(category: Category): CategoryEntity
+        }
+
+        class MenuEntity {
+          -id: Long
+          -restaurantId: Long
+          -name: String
+          -price: Integer
+          -description: String
+          -isSignature: Boolean
+          -thumbnailUrl: String
+          -categoryId: Long
+          -createdAt: LocalDateTime
+          -updatedAt: LocalDateTime
+          +toDomain(): Menu
+          +fromDomain(menu: Menu): MenuEntity
+        }
+
+        class RestaurantEntity {
+          -id: Long
+          -name: String
+          -address: String
+          -latitude: Double
+          -longitude: Double
+          -categoryId: Long
+          -phone: String
+          -businessHours: String
+          -description: String
+          -thumbnailUrl: String
+          -createdAt: LocalDateTime
+          -updatedAt: LocalDateTime
+          +toDomain(): Restaurant
+          +fromDomain(restaurant: Restaurant): RestaurantEntity
+        }
+
+        class UserLocationEntity {
+          -id: Long
+          -userId: String
+          -latitude: Double
+          -longitude: Double
+          -recordedAt: LocalDateTime
+        }
+      }
+    }
+
+    package "config" {
+      class SecurityConfig {
+        -allowedOrigins: String
+        -jwtSecret: String
+        +jwtAuthenticationFilter(): JwtAuthenticationFilter
+        +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+        +corsConfigurationSource(): CorsConfigurationSource
+        +passwordEncoder(): PasswordEncoder
+      }
+
+      class JwtAuthenticationFilter {
+        -secretKey: String
+        #doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+      }
+
+      class SwaggerConfig {
+        +openAPI(): OpenAPI
+      }
+
+      class WebClientConfig {
+        +webClient(): WebClient
+        +restTemplate(): RestTemplate
+      }
+
+      class RedisConfig {
+        -redisHost: String
+        -redisPort: int
+        +redisConnectionFactory(): RedisConnectionFactory
+        +redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, Object>
+      }
+    }
+  }
+}
+
+' 관계 정의
+ClaudeService ..|> ClaudeUseCase
+ContextBasedRecommendService ..|> OccasionRecommendUseCase
+ContextBasedRecommendService ..|> WeatherBasedRecommendUseCase
+ContextBasedRecommendService ..|> TimeBasedRecommendUseCase
+LocationBasedRecommendService ..|> NearbyRestaurantUseCase
+PersonalizedRecommendService ..|> PersonalizedRecommendUseCase
+RestaurantService ..|> RestaurantDetailUseCase
+RestaurantService ..|> CategoryUseCase
+MenuOrderService ..|> OrderingMenuUseCase
+
+ContextBasedRecommendService --> RestaurantRepository
+ContextBasedRecommendService --> MenuRepository
+ContextBasedRecommendService --> CategoryRepository
+ContextBasedRecommendService --> WeatherService
+
+LocationBasedRecommendService --> ClaudeUseCase
+LocationBasedRecommendService --> LocationService
+
+PersonalizedRecommendService --> RestaurantRepository
+PersonalizedRecommendService --> MenuRepository
+PersonalizedRecommendService --> CategoryRepository
+PersonalizedRecommendService --> UserPreferenceRepository
+PersonalizedRecommendService --> LocationRepository
+PersonalizedRecommendService --> WeatherService
+
+RestaurantService --> RestaurantRepository
+RestaurantService --> MenuRepository
+RestaurantService --> CategoryRepository
+
+JpaCategoryRepository ..|> CategoryRepository
+JpaMenuRepository ..|> MenuRepository
+JpaRestaurantRepository ..|> RestaurantRepository
+JpaUserPreferenceRepository ..|> UserPreferenceRepository
+RedisLocationRepository ..|> LocationRepository
+PostgresLocationRepository ..|> LocationRepository
+OpenWeatherMapService ..|> WeatherService
+
+JpaCategoryRepository --> CategoryJpaRepository
+JpaMenuRepository --> MenuJpaRepository
+JpaRestaurantRepository --> RestaurantJpaRepository
+PostgresLocationRepository --> JpaUserLocationRepository
+
+CategoryJpaRepository --> CategoryEntity
+MenuJpaRepository --> MenuEntity
+RestaurantJpaRepository --> RestaurantEntity
+JpaUserLocationRepository --> UserLocationEntity
+
+RecommendController --> NearbyRestaurantUseCase
+RecommendController --> OccasionRecommendUseCase
+RecommendController --> WeatherBasedRecommendUseCase
+RecommendController --> TimeBasedRecommendUseCase
+RecommendController --> PersonalizedRecommendUseCase
+RecommendController --> OrderingMenuUseCase
+
+RestaurantController --> RestaurantDetailUseCase
+RestaurantController --> CategoryUseCase
+
+ClaudeController --> ClaudeUseCase
+
+SecurityConfig --> JwtAuthenticationFilter
+
+@enduml
+
+3.7 클래스 설계서 - 리뷰 서비스
+@startuml
+!theme mono
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+
+title 리뷰 서비스 - 클래스 다이어그램
+
+package "com.turtleship.mmg.review" {
+  package "biz" {
+    package "domain" {
+      class Review {
+        -id: Long
+        -userId: String
+        -restaurantId: Long
+        -content: String
+        -rating: Double
+        -visitDate: LocalDate
+        -images: List<ReviewImage>
+        -keywords: List<Keyword>
+        -createdAt: LocalDateTime
+        -updatedAt: LocalDateTime
+        +addImage(image: ReviewImage): void
+        +addKeyword(keyword: Keyword): void
+      }
+
+      class ReviewImage {
+        -id: Long
+        -reviewId: Long
+        -imageUrl: String
+        -createdAt: LocalDateTime
+      }
+
+      class Keyword {
+        -id: Long
+        -reviewId: Long
+        -keyword: String
+        -sentiment: String
+        -createdAt: LocalDateTime
+      }
+
+      class Rating {
+        -restaurantId: Long
+        -avgRating: Double
+        -reviewCount: Integer
+        -updatedAt: LocalDateTime
+      }
+    }
+
+    package "usecase" {
+      package "in" {
+        interface GetReviewsUseCase {
+          +getReviewsByRestaurantId(restaurantId: Long, pageable: Pageable): Page<ReviewResponse>
+        }
+
+        interface CreateReviewUseCase {
+          +createReview(request: ReviewCreateRequest): ReviewResponse
+        }
+
+        interface UpdateReviewUseCase {
+          +updateReview(reviewId: Long, request: ReviewUpdateRequest): ReviewResponse
+        }
+
+        interface DeleteReviewUseCase {
+          +deleteReview(reviewId: Long, userId: String): void
+        }
+
+        interface GetReviewSummaryUseCase {
+          +getReviewSummary(restaurantId: Long): ReviewSummaryResponse
+        }
+
+        interface ClaudeUseCase {
+          +getClaudeAnswer(request: ClaudeRequest, instruction: String): ClaudeResponse
+        }
+      }
+
+      package "out" {
+        interface ReviewRepository {
+          +findById(id: Long): Optional<Review>
+          +findByRestaurantId(restaurantId: Long, pageable: Pageable): Page<Review>
+          +save(review: Review): Review
+          +delete(review: Review): void
+          +countByRestaurantId(restaurantId: Long): Long
+          +findAverageRatingByRestaurantId(restaurantId: Long): Double
+          +findKeywordsByRestaurantId(restaurantId: Long): List<KeywordSummary>
+        }
+
+        interface ReviewImageRepository {
+          +findByReviewId(reviewId: Long): List<ReviewImage>
+          +save(reviewImage: ReviewImage): ReviewImage
+          +deleteByReviewId(reviewId: Long): void
+        }
+
+        interface RestaurantRepository {
+          +findById(id: Long): Optional<Restaurant>
+          +updateRating(restaurantId: Long): void
+        }
+
+        interface KeywordAnalyzer {
+          +analyzeKeywords(content: String): List<Keyword>
+        }
+      }
+    }
+
+    package "service" {
+      class ReviewService {
+        -reviewRepository: ReviewRepository
+        -restaurantRepository: RestaurantRepository
+        -reviewImageRepository: ReviewImageRepository
+        -keywordAnalyzer: KeywordAnalyzer
+        +getReviewsByRestaurantId(restaurantId: Long, pageable: Pageable): Page<ReviewResponse>
+        +createReview(request: ReviewCreateRequest): ReviewResponse
+        +updateReview(reviewId: Long, request: ReviewUpdateRequest): ReviewResponse
+        +deleteReview(reviewId: Long, userId: String): void
+        -validateReviewOwner(userId: String, review: Review): void
+        -processReviewImages(reviewId: Long, imageUrls: List<String>): void
+        -updateReviewImages(reviewId: Long, imageUrls: List<String>): void
+        -deleteReviewImages(reviewId: Long): void
+      }
+
+      class ReviewAnalyticsService {
+        -reviewRepository: ReviewRepository
+        -keywordAnalyzer: KeywordAnalyzer
+        +getReviewSummary(restaurantId: Long): ReviewSummaryResponse
+        -generateKeywordSummary(keywords: List<KeywordSummary>): Map<String, Object>
+      }
+
+      class ClaudeService {
+        -objectMapper: ObjectMapper
+        -webClientBuilder: WebClient.Builder
+        -webClient: WebClient
+        -apiKey: String
+        -apiUrl: String
+        -model: String
+        -getWebClient(): WebClient
+        +getClaudeAnswer(request: ClaudeRequest, instruction: String): ClaudeResponse
+      }
+
+      class GoogleMyBusinessService {
+        -webClient: WebClient
+        -objectMapper: ObjectMapper
+        -apiKey: String
+        -baseUrl: String
+        +getPlaceId(Query: String): String
+        +getMultiLanguageReviews(Query: String): ReviewResponseDto
+        -getPlaceReviews(placeId: String, language: String): ReviewResponseDto
+      }
+
+      class LocationService {
+        -clientId: String
+        -clientSecret: String
+        -restTemplate: RestTemplate
+        +getReverseGeocode(longitude: String, latitude: String): ResponseEntity<LocationResponse>
+        -extractAreaName(region: Map<String, Object>, areaKey: String): String
+      }
+    }
+  }
+
+  package "infra" {
+    package "controller" {
+      class ReviewController {
+        -claudeUseCase: ClaudeUseCase
+        -googleMyBusinessService: GoogleMyBusinessService
+        -locationService: LocationService
+        +getClaudeReview(review: String): ResponseEntity<?>
+        +getReviews(query: String, latitude: String, longitude: String): ResponseEntity<?>
+      }
+    }
+
+    package "dto" {
+      class ReviewCreateRequest {
+        -userId: String
+        -restaurantId: Long
+        -content: String
+        -rating: Double
+        -visitDate: LocalDate
+        -photoUrls: List<String>
+      }
+
+      class ReviewUpdateRequest {
+        -userId: String
+        -content: String
+        -rating: Double
+        -visitDate: LocalDate
+        -photoUrls: List<String>
+      }
+
+      class ReviewResponse {
+        -id: Long
+        -userId: String
+        -userName: String
+        -content: String
+        -rating: Double
+        -visitDate: LocalDate
+        -photoUrls: List<String>
+        -keywords: List<String>
+        -createdAt: LocalDateTime
+        -updatedAt: LocalDateTime
+      }
+
+      class ReviewSummaryResponse {
+        -avgRating: Double
+        -reviewCount: Integer
+        -keywordSummary: Map<String, Object>
+      }
+
+      class KeywordSummary {
+        -keyword: String
+        -count: Integer
+        -sentiment: String
+      }
+
+      class ClaudeRequest {
+        -userPrompt: String
+        -systemPrompt: String
+      }
+
+      class ClaudeResponse {
+        -content: String
+        -rawResponse: JsonNode
+      }
+
+      class LocationResponse {
+        -fullAddress: String
+        -error: String
+      }
+
+      class ReviewResponseDto {
+        -reviews: List<ReviewDto>
+        -totalReviewCount: Integer
+        -averageRating: Double
+        -storeInfo: StoreInfoDto
+      }
+
+      class ReviewDto {
+        -id: String
+        -comment: String
+        -starRating: Integer
+        -createTime: LocalDateTime
+        -updateTime: LocalDateTime
+        -relativeTimeDescription: String
+        -language: String
+      }
+
+      class StoreInfoDto {
+        -name: String
+        -address: String
+        -phoneNumber: String
+        -websiteUrl: String
+        -category: String
+      }
+    }
+
+    package "gateway" {
+      class NlpKeywordAnalyzer {
+        -POSITIVE_KEYWORDS: List<String>
+        -NEGATIVE_KEYWORDS: List<String>
+        -SENTIMENTS: String[]
+        -RANDOM: Random
+        +analyzeKeywords(content: String): List<Keyword>
+      }
+
+      package "repository" {
+        class JpaReviewRepository {
+          -reviewJpaRepository: ReviewJpaRepository
+          -keywordJpaRepository: KeywordJpaRepository
+          -reviewImageJpaRepository: ReviewImageJpaRepository
+          +findById(id: Long): Optional<Review>
+          +findByRestaurantId(restaurantId: Long, pageable: Pageable): Page<Review>
+          +save(review: Review): Review
+          +delete(review: Review): void
+          +countByRestaurantId(restaurantId: Long): Long
+          +findAverageRatingByRestaurantId(restaurantId: Long): Double
+          +findKeywordsByRestaurantId(restaurantId: Long): List<KeywordSummary>
+        }
+
+        class FileSystemReviewImageRepository {
+          -imageStoragePath: String
+          -reviewImageJpaRepository: ReviewImageJpaRepository
+          +findByReviewId(reviewId: Long): List<ReviewImage>
+          +save(reviewImage: ReviewImage): ReviewImage
+          +deleteByReviewId(reviewId: Long): void
+        }
+
+        class JpaRestaurantRepository {
+          -restTemplate: RestTemplate
+          -ratingJpaRepository: RatingJpaRepository
+          -reviewJpaRepository: ReviewJpaRepository
+          +findById(id: Long): Optional<Restaurant>
+          +updateRating(restaurantId: Long): void
+        }
+
+        interface ReviewJpaRepository {
+          +findById(id: Long): Optional<ReviewEntity>
+          +findByRestaurantId(restaurantId: Long, pageable: Pageable): Page<ReviewEntity>
+          +save(entity: ReviewEntity): ReviewEntity
+          +deleteById(id: Long): void
+          +countByRestaurantId(restaurantId: Long): Long
+          +findAverageRatingByRestaurantId(restaurantId: Long): Double
+        }
+
+        interface KeywordJpaRepository {
+          +findByReviewId(reviewId: Long): List<KeywordEntity>
+          +save(entity: KeywordEntity): KeywordEntity
+          +deleteByReviewId(reviewId: Long): void
+          +findByRestaurantIdGroupByKeyword(restaurantId: Long): List<KeywordSummaryEntity>
+        }
+
+        interface ReviewImageJpaRepository {
+          +findByReviewId(reviewId: Long): List<ReviewImageEntity>
+          +save(entity: ReviewImageEntity): ReviewImageEntity
+          +deleteByReviewId(reviewId: Long): void
+        }
+
+        interface RatingJpaRepository {
+          +findByRestaurantId(restaurantId: Long): Optional<RatingEntity>
+          +save(entity: RatingEntity): RatingEntity
+        }
+      }
+
+      package "entity" {
+        class ReviewEntity {
+          -id: Long
+          -userId: String
+          -restaurantId: Long
+          -content: String
+          -rating: Double
+          -visitDate: LocalDate
+          -createdAt: LocalDateTime
+          -updatedAt: LocalDateTime
+          +toDomain(): Review
+          +fromDomain(review: Review): ReviewEntity
+        }
+
+        class ReviewImageEntity {
+          -id: Long
+          -reviewId: Long
+          -imageUrl: String
+          -createdAt: LocalDateTime
+          +toDomain(): ReviewImage
+          +fromDomain(reviewImage: ReviewImage): ReviewImageEntity
+        }
+
+        class KeywordEntity {
+          -id: Long
+          -reviewId: Long
+          -keyword: String
+          -sentiment: String
+          -createdAt: LocalDateTime
+          +toDomain(): Keyword
+          +fromDomain(keyword: Keyword): KeywordEntity
+        }
+
+        interface KeywordSummaryEntity {
+          +getKeyword(): String
+          +getCount(): Integer
+          +getSentiment(): String
+        }
+
+        class RatingEntity {
+          -restaurantId: Long
+          -avgRating: Double
+          -reviewCount: Integer
+          -updatedAt: LocalDateTime
+          +toDomain(): Rating
+          +fromDomain(rating: Rating): RatingEntity
+        }
+      }
+    }
+
+    package "config" {
+      class SecurityConfig {
+        -allowedOrigins: String
+        -jwtSecret: String
+        +jwtAuthenticationFilter(): JwtAuthenticationFilter
+        +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+        +corsConfigurationSource(): CorsConfigurationSource
+        +passwordEncoder(): PasswordEncoder
+      }
+
+      class JwtAuthenticationFilter {
+        -secretKey: String
+        #doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+      }
+
+      class SwaggerConfig {
+        +openAPI(): OpenAPI
+      }
+
+      class WebClientConfig {
+        +webClient(): WebClient
+        +restTemplate(): RestTemplate
+      }
+
+      class ImageStorageConfig {
+        -storagePath: String
+        -maxFileSize: String
+        -allowedExtensions: String
+        +multipartResolver(): MultipartResolver
+        +imageStoragePath(): String
+        +allowedExtensionsList(): List<String>
+      }
+    }
+  }
+}
+
+' 관계 정의
+ReviewService ..|> GetReviewsUseCase
+ReviewService ..|> CreateReviewUseCase
+ReviewService ..|> UpdateReviewUseCase
+ReviewService ..|> DeleteReviewUseCase
+ReviewAnalyticsService ..|> GetReviewSummaryUseCase
+ClaudeService ..|> ClaudeUseCase
+
+ReviewService --> ReviewRepository
+ReviewService --> RestaurantRepository
+ReviewService --> ReviewImageRepository
+ReviewService --> KeywordAnalyzer
+ReviewAnalyticsService --> ReviewRepository
+
+JpaReviewRepository ..|> ReviewRepository
+FileSystemReviewImageRepository ..|> ReviewImageRepository
+JpaRestaurantRepository ..|> RestaurantRepository
+NlpKeywordAnalyzer ..|> KeywordAnalyzer
+
+JpaReviewRepository --> ReviewJpaRepository
+JpaReviewRepository --> KeywordJpaRepository
+JpaReviewRepository --> ReviewImageJpaRepository
+FileSystemReviewImageRepository --> ReviewImageJpaRepository
+JpaRestaurantRepository --> RatingJpaRepository
+JpaRestaurantRepository --> ReviewJpaRepository
+
+ReviewJpaRepository --> ReviewEntity
+KeywordJpaRepository --> KeywordEntity
+ReviewImageJpaRepository --> ReviewImageEntity
+RatingJpaRepository --> RatingEntity
+
+ReviewController --> ClaudeUseCase
+ReviewController --> GoogleMyBusinessService
+ReviewController --> LocationService
+
+SecurityConfig --> JwtAuthenticationFilter
+
+@enduml
+
+3.8 데이터 설계서 - 회원 서비스
+@startuml
+!theme mono
+title 회원 서비스 - 데이터 모델
+
+' Style configurations
+skinparam linetype ortho
+hide circle
+
+' Member entities
+entity "members" as members {
+  * id: bigint <<PK>>
+  --
+  username: varchar(100) <<UQ>>
+  password: varchar(255)
+  name: varchar(100)
+  email: varchar(255)
+  phone_number: varchar(20)
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity "member_roles" as roles {
+  * member_id: bigint <<FK>>
+  * role: varchar(20)
+  --
+}
+
+entity "preferences" as preferences {
+  * id: bigint <<PK>>
+  --
+  member_id: bigint <<FK>> <<UQ>>
+  food_categories: text
+  avoid_foods: text  
+  max_price: integer
+  preferred_locations: text
+  updated_at: timestamp
+}
+
+entity "tokens" as tokens {
+  * id: bigint <<PK>>
+  --
+  user_id: varchar(50)
+  token: varchar(255)
+  token_type: varchar(20)
+  expires_at: timestamp
+  is_valid: boolean
+  created_at: timestamp
+}
+
+' Relationships
+members ||--o{ roles
+members ||--o| preferences
+members ||--o{ tokens
+
+@enduml
+
+3.9 데이터 설계서 - 추천 서비스
+@startuml
+!theme mono
+title 추천 서비스 - 데이터 모델
+
+' Style configurations
+skinparam linetype ortho
+hide circle
+
+' Restaurant entities
+entity "restaurants" as restaurants {
+  * id: bigint <<PK>>
+  --
+  name: varchar(255)
+  address: varchar(255)
+  latitude: double
+  longitude: double
+  category_id: bigint <<FK>>
+  phone: varchar(20)
+  business_hours: varchar(100)
+  description: text
+  thumbnail_url: varchar(255)
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity "categories" as categories {
+  * id: bigint <<PK>>
+  --
+  name: varchar(100)
+  parent_id: bigint
+  image_url: varchar(255)
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity "menus" as menus {
+  * id: bigint <<PK>>
+  --
+  restaurant_id: bigint <<FK>>
+  name: varchar(100)
+  price: integer
+  description: text
+  is_signature: boolean
+  thumbnail_url: varchar(255)
+  category_id: bigint <<FK>>
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity "stores" as stores {
+  * id: bigint <<PK>>
+  --
+  name: varchar(255)
+  category: varchar(100)
+  address: varchar(255)
+  road_address: varchar(255)
+  phone: varchar(20)
+  description: text
+  x: double
+  y: double
+  distance: double
+  menu_info: text
+}
+
+entity "user_locations" as user_locations {
+  * id: bigint <<PK>>
+  --
+  user_id: varchar(50)
+  latitude: double
+  longitude: double
+  recorded_at: timestamp
+}
+
+' Relationships
+restaurants }--|| categories : category_id
+menus }--|| restaurants : restaurant_id
+menus }--o| categories : category_id
+
+@enduml
+
+3.10 데이터 설계서 - 리뷰 서비스
+@startuml
+!theme mono
+title 리뷰 서비스 - 데이터 모델
+
+' Style configurations
+skinparam linetype ortho
+hide circle
+
+' Review entities
+entity "reviews" as reviews {
+  * id: bigint <<PK>>
+  --
+  user_id: varchar(50)
+  restaurant_id: bigint
+  content: text
+  rating: double
+  visit_date: date
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity "review_images" as review_images {
+  * id: bigint <<PK>>
+  --
+  review_id: bigint <<FK>>
+  image_url: varchar(255)
+  created_at: timestamp
+}
+
+entity "review_keywords" as review_keywords {
+  * id: bigint <<PK>>
+  --
+  review_id: bigint <<FK>>
+  keyword: varchar(100)
+  sentiment: varchar(20)
+  created_at: timestamp
+}
+
+entity "restaurant_ratings" as ratings {
+  * restaurant_id: bigint <<PK>>
+  --
+  avg_rating: double
+  review_count: integer
+  updated_at: timestamp
+}
+
+' Relationships
+reviews ||--o{ review_images
+reviews ||--o{ review_keywords
+ratings |o--o{ reviews
+
+@enduml
+
+4. 물리 아키텍처
+@startuml
+!theme mono
+
+title MMG 서비스 - 물리 아키텍처 (Azure Cloud)
+
+' Azure Resource Group
+rectangle "Resource Group (mmg-rg)" {
+    ' 네트워크 구성
+    rectangle "Azure Virtual Network (mmg-vnet)" {
+        rectangle "AKS Subnet (mmg-aks-subnet)" as aks_subnet
+        rectangle "Database Subnet (mmg-db-subnet)" as db_subnet
+        rectangle "Integration Subnet (mmg-int-subnet)" as int_subnet
+        rectangle "Redis Subnet (mmg-redis-subnet)" as redis_subnet
+    }
+
+    ' 프론트엔드
+    component "Azure Static Web Apps" as static_web {
+        [Front-end Application] as frontend
+    }
+    
+    component "Azure CDN" as cdn
+    
+    ' API 게이트웨이
+    component "Azure API Management" as apim {
+        [API Gateway] as api_gateway
+    }
+    
+    ' 인증/인가
+    component "Azure AD B2C" as aad {
+        [Identity Provider] as idp
+    }
+    
+    ' 마이크로서비스
+    rectangle "Azure Kubernetes Service (AKS Cluster)" as aks {
+        rectangle "회원 서비스" as member_service {
+            [회원 서비스 Pods] as member_pods
+        }
+        
+        rectangle "추천 서비스" as recommend_service {
+            [추천 서비스 Pods] as recommend_pods
+        }
+        
+        rectangle "리뷰 서비스" as review_service {
+            [리뷰 서비스 Pods] as review_pods
+        }
+
+        ' 인그레스 컨트롤러
+        [Ingress Controller] as ingress
+    }
+    
+    ' 데이터베이스
+    component "Azure Database for PostgreSQL" as postgres {
+        database "회원 DB" as member_db
+        database "추천 DB" as recommend_db
+        database "리뷰 DB" as review_db
+    }
+    
+    ' 캐시
+    component "Azure Cache for Redis" as redis {
+        [Redis Cache] as redis_cache
+    }
+    
+    ' 비동기 메시징
+    component "Azure Event Hub" as event_hub {
+        queue "Events" as events
+    }
+    
+    ' 모니터링 및 로깅
+    component "Azure Monitor" as monitor {
+        [Application Insights] as app_insights
+        [Log Analytics] as log_analytics
+    }
+    
+    ' 스토리지
+    component "Azure Storage Account" as storage {
+        [Blob Storage] as blob
+    }
+
+    ' CI/CD
+    component "Azure DevOps" as devops {
+        [Pipelines] as pipelines
+    }
+
+    ' 외부 서비스 연동
+    component "External Services" as ext_services {
+        [Google Places API] as google_api
+        [OpenWeatherMap API] as weather_api
+        [Naver Map API] as naver_api
+        [Claude API] as claude_api
+    }
+}
+
+' 외부 액터
+actor "Client" as client
+actor "Developer" as developer
+
+' 네트워크 흐름
+client --> cdn : 1. HTTPS 요청
+cdn --> static_web : 2. 정적 컨텐츠 요청
+static_web --> apim : 3. API 요청
+apim --> aad : 4. 인증 요청
+apim --> ingress : 5. 인증된 API 요청
+
+ingress --> member_pods : 6a. 회원 관련 요청
+ingress --> recommend_pods : 6b. 추천 관련 요청
+ingress --> review_pods : 6c. 리뷰 관련 요청
+
+member_pods --> member_db : 7a. 회원 데이터 접근
+recommend_pods --> recommend_db : 7b. 추천 데이터 접근
+review_pods --> review_db : 7c. 리뷰 데이터 접근
+recommend_pods --> redis_cache : 7d. 캐시 데이터 접근
+
+recommend_pods --> ext_services : 8a. 외부 API 요청
+review_pods --> ext_services : 8b. 외부 API 요청
+
+member_pods --> event_hub : 9a. 이벤트 발행
+recommend_pods --> event_hub : 9b. 이벤트 발행
+review_pods --> event_hub : 9c. 이벤트 발행
+review_pods <-- event_hub : 9d. 이벤트 구독
+
+member_pods ..> app_insights : 10a. 텔레메트리 전송
+recommend_pods ..> app_insights : 10b. 텔레메트리 전송
+review_pods ..> app_insights : 10c. 텔레메트리 전송
+
+review_pods --> blob : 11. 리뷰 이미지 저장/조회
+
+' CI/CD 흐름
+developer --> devops : 12. 코드 배포
+devops --> aks : 13. 컨테이너 이미지 배포
+devops --> static_web : 14. 프론트엔드 배포
+
+' 네트워크 서브넷 연결
+aks --> aks_subnet
+postgres --> db_subnet
+redis --> redis_subnet
+apim --> int_subnet
+event_hub --> int_subnet
+
+' 설명 노트
+note right of ingress
+  Nginx Ingress Controller
+  - 라우팅 규칙 관리
+  - 트래픽 분산
+  - SSL 종료
+end note
+
+note right of postgres
+  Azure Database for PostgreSQL
+  - 각 서비스별 독립 데이터베이스
+  - 자동 백업 및 고가용성 구성
+  - 읽기 복제본 구성 가능
+end note
+
+note right of member_pods
+  회원 서비스
+  - 사용자 인증/인가
+  - 로그인/로그아웃 처리
+  - 토큰 관리
+  - 사용자 취향 관리
+end note
+
+note right of recommend_pods
+  추천 서비스
+  - 위치 기반 추천
+  - 상황별 추천
+  - 맞춤형 추천
+  - AI 기반 추천
+end note
+
+note right of review_pods
+  리뷰 서비스
+  - 리뷰 작성/관리
+  - 리뷰 분석
+  - 키워드 추출
+  - 평점 관리
+end note
+
+note right of ext_services
+  외부 서비스 연동
+  - Google Places API: 장소 검색 및 리뷰
+  - OpenWeatherMap API: 날씨 정보
+  - Naver Map API: 위치 정보
+  - Claude API: AI 추천 및 분석
+end note
+
+note right of monitor
+  모니터링 및 알림
+  - 실시간 성능 모니터링
+  - 로그 분석
+  - 알림 설정
+end note
+
+note right of redis
+  Redis Cache
+  - 위치 정보 캐싱
+  - 추천 결과 캐싱
+  - 세션 데이터 저장
+end note
+
+legend right
+  | 구성요소 | 설명 |
+  |---------|------|
+  | AKS | 마이크로서비스 배포 관리 |
+  | API Management | API 게이트웨이 및 보안 |
+  | Azure AD B2C | 인증 및 사용자 관리 |
+  | Event Hub | 비동기 이벤트 처리 |
+  | PostgreSQL | 관계형 데이터 저장 |
+  | Redis | 캐시 및 세션 관리 |
+  | Monitor | 시스템 모니터링 및 로그 분석 |
+  | Blob Storage | 이미지 저장 |
+endlegend
+
+@enduml
+

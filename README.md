@@ -9,12 +9,12 @@ MMG는 상황에 맞는 매장을 AI가 매장을 추천해주고, 리뷰 생성
 - **리뷰 생성 요약**: 키워드만으로 리뷰를 생성해주고, 다른 사용자들의 리뷰를 요약해주는 기능
 
 ### 1.2 MVP 산출물
-- **발표자료**: {발표자료 링크}
-- **설계결과**: {설계결과 링크}
+- **발표자료**: https://gamma.app/docs/AI--r1hi7yj732mtt9a
+- **설계결과**: https://github.com/mmg-service/mmg-web/blob/main/readmeImages/설계결과.txt
 - **Git Repo**: 
   - **프론트엔드**: https://github.com/mmg-service/mmg-web.git
   - **백엔드**: https://github.com/mmg-service/mmg.git
-- **시연 동영상**: https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00
+- **시연 동영상**:
   <img src="https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00" width="300" height="600">  
 
 ## 2. 시스템 아키텍처
