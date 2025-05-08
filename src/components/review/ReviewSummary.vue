@@ -2,7 +2,7 @@
     <div class="review-summary-container">
       <h3 class="review-summary-title">리뷰 요약</h3>
       <div class="review-summary-content">
-        <p>{{ summaryText }}</p>
+        <pre>{{ summaryText }}</pre>
       </div>
     </div>
   </template>

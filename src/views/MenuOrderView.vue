@@ -245,7 +245,7 @@ export default {
       
       // Data/contetn 영역 추출
       if (data && data.data && data.data.content) {
-        this.restaurantReviewSummary = data.data.content;
+        this.restaurantReviewSummary = data.data.content.replace("<br>","\n");
       }
     } catch (error) {
       console.error("리뷰 요약 오류:", error);
