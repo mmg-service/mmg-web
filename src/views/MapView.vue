@@ -1016,6 +1016,20 @@ const goToMyPage = () => {
   text-align: center;
 }
 
+.tab-btn:hover {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  background: none;
+  border: none;
+  border-radius: 0;
+  position: relative;
+  text-align: center;
+  opacity: 0.75;
+}
+
 .tab-btn.active {
   color: #ff5722;
   font-weight: 600;
@@ -1107,6 +1121,19 @@ const goToMyPage = () => {
   flex-shrink: 0;
 }
 
+.category-btn:hover {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 20px;
+  border: 1px solid #dde2e6;
+  background-color: white;
+  font-size: 14px;
+  white-space: nowrap;
+  color: #555;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
 .category-btn.active {
   background-color: #ff5722;
   color: white;
@@ -1131,6 +1158,19 @@ const goToMyPage = () => {
   font-size: 16px;
   font-weight: 500;
   box-shadow: 0 2px 5px rgba(255, 87, 34, 0.3);
+}
+
+.apply-btn:hover {
+  width: 100%;
+  padding: 14px 0;
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(255, 87, 34, 0.3);
+  opacity: 0.75;
 }
 
 /* 사용자 위치 마커 스타일 */

@@ -243,9 +243,9 @@ export default {
       // JSON 변환
       const data = typeof responseData === 'string' ? JSON.parse(responseData) : responseData;
       
-      // Data/contetn 영역 추출
+      // Data/content 영역 추출
       if (data && data.data && data.data.content) {
-        this.restaurantReviewSummary = data.data.content.replace("<br>","\n");
+        this.restaurantReviewSummary = data.data.content;
       }
     } catch (error) {
       console.error("리뷰 요약 오류:", error);
@@ -636,6 +636,18 @@ export default {
   cursor: pointer;
 }
 
+.order-button:hover {
+  align-self: flex-end;
+  background-color: #222;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
 .order-footer {
   display: flex;
   align-items: center;
@@ -695,6 +707,18 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.order-submit-button:hover {
+  background-color: #00c2b3;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.75;
 }
 
 /* 장바구니 애니메이션 아이템 스타일 */
