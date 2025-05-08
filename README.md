@@ -15,7 +15,7 @@ MMG는 상황에 맞는 매장을 AI가 매장을 추천해주고, 리뷰 생성
   - **프론트엔드**: https://github.com/mmg-service/mmg-web.git
   - **백엔드**: https://github.com/mmg-service/mmg.git
 - **시연 동영상**: https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00
-  <img src="https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00" width="400" height="1200">  
+  <img src="https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00" width="200" height="600">  
 
 ## 2. 시스템 아키텍처
 
