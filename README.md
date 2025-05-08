@@ -1,4 +1,5 @@
 # restaurant-app
+<img src="https://github.com/user-attachments/assets/c8fc513a-7357-4605-9f0d-efee8573ac00">
 
 ## Project setup
 ```
